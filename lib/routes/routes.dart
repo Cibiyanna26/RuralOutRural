@@ -6,6 +6,10 @@ import 'package:reach_out_rural/screens/login/login_screen.dart';
 import 'package:reach_out_rural/screens/onboarding/onboarding_screen.dart';
 import 'package:reach_out_rural/screens/otp/otp_screen.dart';
 import 'package:reach_out_rural/screens/register/register_screen.dart';
+import 'package:reach_out_rural/screens/home/chatbot/chatbot.dart';
+import 'package:reach_out_rural/screens/home/scannerpage/scanner_page.dart';
+import 'package:reach_out_rural/screens/home/dashboard/dashboard.dart';
+import 'package:reach_out_rural/screens/home/prescription_page/prescription_page.dart';
 
 final router = GoRouter(
   initialLocation: "/onboarding",
@@ -14,6 +18,24 @@ final router = GoRouter(
       path: '/',
       pageBuilder: (context, state) => _buildPageWithDefaultTransition(
           context: context, state: state, child: const HomeScreen()),
+      routes: [
+        GoRoute(
+          path: 'chat',
+          builder: (context, state) => ChatBotPage(),
+        ),
+        GoRoute(
+          path: 'scanner',
+          builder: (context, state) => ScannerPage(),
+        ),
+        GoRoute(
+          path: 'prescription',
+          builder: (context, state) => PrescriptionPage(),
+        ),
+        GoRoute(
+          path: 'dashboard',
+          builder: (context, state) => DashboardPage(),
+        ),
+      ],
     ),
     GoRoute(
       path: "/onboarding",
@@ -35,6 +57,14 @@ final router = GoRouter(
             state: state,
             child:
                 OtpScreen(phoneNumber: state.pathParameters['phoneNumber']!))),
+    GoRoute(
+        path: "/chatbot",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const ChatBotPage())),
+    GoRoute(
+        path: "/scanner-page",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: ScannerPage())),
   ],
   errorPageBuilder: (context, state) => _buildPageWithDefaultTransition(
       context: context,
