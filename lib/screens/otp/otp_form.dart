@@ -34,7 +34,7 @@ class OtpForm extends StatelessWidget {
           defaultPinTheme: defaultPinTheme,
           focusedPinTheme: defaultPinTheme.copyWith(
             decoration: defaultPinTheme.decoration!.copyWith(
-              border: Border.all(color: kprimaryColor),
+              border: Border.all(color: kPrimaryColor),
             ),
           ),
           errorPinTheme: defaultPinTheme.copyWith(

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:reach_out_rural/screens/chatbot/chat_bot_screen.dart';
+import 'package:reach_out_rural/screens/dashboard/dashboard_screen.dart';
 import 'package:reach_out_rural/screens/error/error_screen.dart';
 import 'package:reach_out_rural/screens/home/home_screen.dart';
 import 'package:reach_out_rural/screens/login/login_screen.dart';
 import 'package:reach_out_rural/screens/onboarding/onboarding_screen.dart';
 import 'package:reach_out_rural/screens/otp/otp_screen.dart';
+import 'package:reach_out_rural/screens/prescription/prescription_screen.dart';
+import 'package:reach_out_rural/screens/prescription/uploaded_prescription_screen.dart';
 import 'package:reach_out_rural/screens/register/register_screen.dart';
+import 'package:reach_out_rural/screens/scanner/scanner_screen.dart';
 
 final router = GoRouter(
   initialLocation: "/onboarding",
@@ -14,6 +19,31 @@ final router = GoRouter(
       path: '/',
       pageBuilder: (context, state) => _buildPageWithDefaultTransition(
           context: context, state: state, child: const HomeScreen()),
+      routes: <RouteBase>[
+        GoRoute(
+          path: 'chat',
+          builder: (context, state) => const ChatBotScreen(),
+        ),
+        GoRoute(
+          path: 'scanner',
+          builder: (context, state) => const ScannerScreen(),
+        ),
+        GoRoute(
+          path: 'prescription',
+          builder: (context, state) => const PrescriptionScreen(),
+          routes: <RouteBase>[
+            GoRoute(
+              path: "view",
+              builder: (context, state) => UploadedPrescriptionScreen(
+                  tempFilePath: state.uri.queryParameters['fileUrl']!),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'dashboard',
+          builder: (context, state) => const DashboardScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: "/onboarding",

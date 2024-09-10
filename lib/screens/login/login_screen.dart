@@ -137,7 +137,7 @@ class LoginScreen extends StatelessWidget {
                     TextButton(
                       child: const Text('Register',
                           style: TextStyle(
-                              color: kprimaryColor,
+                              color: kPrimaryColor,
                               fontVariations: [FontVariation.weight(700)])),
                       onPressed: () {
                         context.go('/register');
@@ -147,7 +147,7 @@ class LoginScreen extends StatelessWidget {
                 ),
                 TextButton(
                   child: const Text('Need Help?',
-                      style: TextStyle(color: kprimaryColor)),
+                      style: TextStyle(color: kPrimaryColor)),
                   onPressed: () {},
                 ),
               ],

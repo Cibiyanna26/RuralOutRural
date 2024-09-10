@@ -170,7 +170,7 @@ class RegisterScreen extends StatelessWidget {
                     TextButton(
                       child: const Text('Login',
                           style: TextStyle(
-                              color: kprimaryColor,
+                              color: kPrimaryColor,
                               fontVariations: [FontVariation.weight(700)])),
                       onPressed: () {
                         context.go('/login');

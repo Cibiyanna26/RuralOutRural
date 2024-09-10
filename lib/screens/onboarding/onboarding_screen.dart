@@ -97,7 +97,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
       height: 10,
       width: _currentPage == index ? 25 : 10,
       decoration: BoxDecoration(
-        color: _currentPage == index ? kprimaryColor : kgreyDotColor,
+        color: _currentPage == index ? kPrimaryColor : kGreyDotColor,
         borderRadius: BorderRadius.circular(5),
       ),
     );
