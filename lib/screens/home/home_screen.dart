@@ -4,7 +4,6 @@ import 'package:reach_out_rural/screens/home/scannerpage/scanner_page.dart';
 import 'package:reach_out_rural/screens/home/dashboard/dashboard.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-import 'package:reach_out_rural/screens/home/prescription_page/prescription_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,13 +15,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   bool _isListening = false;
+  String _recognizedText = "";
+  SpeechToText _speech = SpeechToText();
+  late BuildContext _dialogContext; // Context for the dialog
+
   final List<Widget> _pages = [
     DashboardPage(),
     ChatBotPage(),
     ScannerPage(),
-    PrescriptionPage(),
   ];
-  SpeechToText _speech = SpeechToText();
 
   @override
   void initState() {
@@ -37,19 +38,54 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  // Open modal dialog when voice recognition starts
+  void _showListeningDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        _dialogContext = context; // Save context for dialog
+        return AlertDialog(
+          title: Text("Listening..."),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 20),
+              Text(
+                _recognizedText.isEmpty
+                    ? "Please say something..."
+                    : _recognizedText,
+                style: TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _speech.stop();
+                Navigator.pop(context);
+                setState(() {
+                  _isListening = false;
+                });
+              },
+              child: Text("Stop Listening"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _startListening() async {
     if (!_isListening) {
+      setState(() {
+        _recognizedText = ""; // Clear previous recognized text
+        _isListening = true;
+      });
       bool available = await _speech.initialize();
       if (available) {
-        setState(() {
-          _isListening = true;
-        });
+        _showListeningDialog(); // Show the dialog when listening starts
         _speech.listen(onResult: _onSpeechResult);
       }
     } else {
@@ -57,10 +93,22 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _isListening = false;
       });
+      Navigator.pop(_dialogContext); // Close the dialog
     }
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
+    setState(() {
+      _recognizedText = result.recognizedWords; // Update subtitle in real-time
+    });
+
+    // Update the dialog content
+    if (_isListening) {
+      Navigator.of(_dialogContext).pop(); // Close current dialog
+      _showListeningDialog(); // Show new dialog with updated text
+    }
+
+    // Navigate based on the recognized command
     final command = result.recognizedWords.toLowerCase();
     if (command.contains('chat')) {
       setState(() {
@@ -70,9 +118,9 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _selectedIndex = 2; // Navigate to ScannerPage
       });
-    } else if (command.contains('prescription')) {
+    } else if (command.contains('home')) {
       setState(() {
-        _selectedIndex = 3; // Navigate to PrescriptionPage
+        _selectedIndex = 0; // Navigate to DashboardPage
       });
     }
   }
@@ -81,44 +129,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.home),
-              color: _selectedIndex == 0 ? Colors.blue : Colors.grey,
-              onPressed: () => _onItemTapped(0),
-            ),
-            IconButton(
-              icon: Icon(Icons.chat),
-              color: _selectedIndex == 1 ? Colors.blue : Colors.grey,
-              onPressed: () => _onItemTapped(1),
-            ),
-            Spacer(),
-            FloatingActionButton(
-              onPressed: _startListening,
-              child: Icon(
-                _isListening ? Icons.mic : Icons.mic_none,
-                color: Colors.white,
-              ),
-              backgroundColor: Colors.blue,
-              elevation: 8.0,
-            ),
-            Spacer(),
-            IconButton(
-              icon: Icon(Icons.camera_alt),
-              color: _selectedIndex == 2 ? Colors.blue : Colors.grey,
-              onPressed: () => _onItemTapped(2),
-            ),
-            IconButton(
-              icon: Icon(Icons.report),
-              color: _selectedIndex == 3 ? Colors.blue : Colors.grey,
-              onPressed: () => _onItemTapped(3),
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() {
+          _selectedIndex = index;
+        }),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.camera_alt), label: 'Scanner'),
+        ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _startListening,
+        child: Icon(_isListening ? Icons.mic : Icons.mic_none),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

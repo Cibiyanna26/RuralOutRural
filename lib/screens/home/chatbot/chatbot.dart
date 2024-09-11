@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:reach_out_rural/constants/constants.dart'; // To decode JSON response
 
 class ChatBotPage extends StatefulWidget {
   const ChatBotPage({super.key});
@@ -10,23 +13,54 @@ class ChatBotPage extends StatefulWidget {
 class _ChatBotPageState extends State<ChatBotPage> {
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, String>> _messages = [];
-
-  // Simulate a bot response
-  String _getBotResponse(String userMessage) {
-    return "You said: $userMessage"; // Simple response from bot
-  }
+  bool _isLoading = false; // To show loading spinner when waiting for response
 
   // Method to handle sending messages
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     if (_controller.text.isNotEmpty) {
       setState(() {
-        // Add user message
+        // Add user message to the chat
         _messages.add({"sender": "user", "message": _controller.text});
-        // Add bot response
-        _messages.add(
-            {"sender": "bot", "message": _getBotResponse(_controller.text)});
+        _isLoading = true; // Show loading spinner
       });
-      _controller.clear(); // Clear the text field after sending
+
+      final userMessage = _controller.text;
+      _controller.clear(); // Clear the input field after sending
+
+      // Send the message to the backend and get the response
+      final botResponse = await _getBotResponse(userMessage);
+
+      setState(() {
+        _messages.add({"sender": "bot", "message": botResponse});
+        _isLoading = false; // Hide loading spinner
+      });
+    }
+  }
+
+  // Method to send request to backend and get the bot response
+  Future<String> _getBotResponse(String userMessage) async {
+    const String apiUrl = BASE_URL + TEXT_TO_TEXT; // API endpoint
+
+    try {
+      print(apiUrl);
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+            {"text": userMessage, "lang": "en"}), // Send user input as JSON
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data[
+            'text_response']; // Assume the backend sends a 'response' field
+      } else {
+        return 'Error: Unable to get response from bot';
+      }
+    } catch (e) {
+      return 'Error: Something went wrong';
     }
   }
 
@@ -69,12 +103,22 @@ class _ChatBotPageState extends State<ChatBotPage> {
               },
             ),
           ),
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(), // Show loading indicator
+            ),
           // Input area for typing a message
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
                 // Text field for input
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  color: Colors.blue,
+                  onPressed: _sendMessage, // Call sendMessage method
+                ),
                 Expanded(
                   child: TextField(
                     controller: _controller,
@@ -86,11 +130,6 @@ class _ChatBotPageState extends State<ChatBotPage> {
                 ),
                 const SizedBox(width: 8),
                 // Send button
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  color: Colors.blue,
-                  onPressed: _sendMessage, // Call sendMessage method
-                ),
               ],
             ),
           ),

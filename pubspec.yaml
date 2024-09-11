@@ -41,6 +41,7 @@ dependencies:
   pinput: ^5.0.0
   camera: ^0.10.0+1
   speech_to_text: ^6.3.0
+  http: ^1.2.2
   image_picker: ^1.1.2
 dev_dependencies:
   flutter_test:
@@ -67,6 +68,7 @@ flutter:
   assets:
     - assets/animations/
     - assets/icons/
+    - assets/images/
 
   fonts:
     - family: OpenSans
