@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:reach_out_rural/models/edit_profile_objects.dart';
 import 'package:reach_out_rural/screens/chatbot/chat_bot_screen.dart';
 import 'package:reach_out_rural/screens/dashboard/dashboard_screen.dart';
 import 'package:reach_out_rural/screens/error/error_screen.dart';
@@ -9,8 +10,11 @@ import 'package:reach_out_rural/screens/onboarding/onboarding_screen.dart';
 import 'package:reach_out_rural/screens/otp/otp_screen.dart';
 import 'package:reach_out_rural/screens/prescription/prescription_screen.dart';
 import 'package:reach_out_rural/screens/prescription/uploaded_prescription_screen.dart';
+import 'package:reach_out_rural/screens/profile/edit_profile_screen.dart';
+import 'package:reach_out_rural/screens/profile/profile_screen.dart';
 import 'package:reach_out_rural/screens/register/register_screen.dart';
 import 'package:reach_out_rural/screens/scanner/scanner_screen.dart';
+import 'package:reach_out_rural/screens/search/search_screen.dart';
 
 final router = GoRouter(
   initialLocation: "/onboarding",
@@ -65,6 +69,36 @@ final router = GoRouter(
             state: state,
             child:
                 OtpScreen(phoneNumber: state.pathParameters['phoneNumber']!))),
+    GoRoute(
+      path: "/search",
+      pageBuilder: (context, state) {
+        return _buildPageWithDefaultTransition(
+            context: context, state: state, child: const SearchScreen());
+      },
+    ),
+    GoRoute(
+      path: "/profile",
+      pageBuilder: (context, state) {
+        return _buildPageWithDefaultTransition(
+            context: context, state: state, child: const ProfileScreen());
+      },
+    ),
+    GoRoute(
+      path: "/edit-profile",
+      pageBuilder: (context, state) {
+        EditProfileObjects obj = state.extra as EditProfileObjects;
+        return _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: EditProfileScreen(
+                name: obj.name,
+                email: obj.email,
+                phone: obj.phone,
+                age: obj.age,
+                location: obj.location,
+                onSave: obj.onSave));
+      },
+    )
   ],
   errorPageBuilder: (context, state) => _buildPageWithDefaultTransition(
       context: context,

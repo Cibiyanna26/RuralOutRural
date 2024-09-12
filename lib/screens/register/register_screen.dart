@@ -4,11 +4,40 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/repository/api/api_repository.dart';
+import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_button.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _textEditingController = TextEditingController();
+  final SharedPreferencesHelper prefs = SharedPreferencesHelper();
+  final authRepository = ApiRepository();
+  String _phoneNumber = "";
+
+  void _register() async {
+    final data =
+        await authRepository.patientRegister({"phonenumber": _phoneNumber});
+    await prefs.setString("phoneNumber", _phoneNumber);
+    await prefs.setString("token", data["token"]);
+
+    if (!mounted) return;
+
+    context.go("/");
+  }
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +85,7 @@ class RegisterScreen extends StatelessWidget {
                   ),
                 ),
                 IntlPhoneField(
+                  controller: _textEditingController,
                   decoration: InputDecoration(
                     counterText: "",
                     labelText: 'Phone Number',
@@ -63,6 +93,16 @@ class RegisterScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
+                  onSubmitted: (phoneNumber) => {
+                    setState(() {
+                      _phoneNumber = phoneNumber;
+                    })
+                  },
+                  onChanged: (value) => {
+                    setState(() {
+                      _phoneNumber = value.number;
+                    })
+                  },
                   dropdownDecoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -157,7 +197,7 @@ class RegisterScreen extends StatelessWidget {
                   height: SizeConfig.getProportionateScreenHeight(56),
                   width: SizeConfig.getProportionateScreenWidth(400),
                   text: "Register",
-                  press: () {},
+                  press: _register,
                   fontSize: SizeConfig.getProportionateTextSize(20),
                 ),
                 const SizedBox(

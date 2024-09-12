@@ -4,13 +4,34 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/repository/api/api_repository.dart';
+import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_button.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  final String phoneNumber = "1234567890";
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _textEditingController = TextEditingController();
+  final SharedPreferencesHelper prefs = SharedPreferencesHelper();
+  final authRepository = ApiRepository();
+  String _phoneNumber = "";
+
+  void _login() async {
+    final data =
+        await authRepository.patientLogin({"phonenumber": _phoneNumber});
+    await prefs.setString("phoneNumber", _phoneNumber);
+    await prefs.setString("token", data["token"]);
+
+    if (!mounted) return;
+
+    context.go("/otp/$_phoneNumber");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +79,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
                 IntlPhoneField(
+                  controller: _textEditingController,
                   decoration: InputDecoration(
                     counterText: "",
                     labelText: 'Phone Number',
@@ -65,6 +87,16 @@ class LoginScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
+                  onChanged: (value) => {
+                    setState(() {
+                      _phoneNumber = value.number;
+                    })
+                  },
+                  onSubmitted: (phoneNumber) => {
+                    setState(() {
+                      _phoneNumber = phoneNumber;
+                    })
+                  },
                   dropdownDecoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -122,9 +154,7 @@ class LoginScreen extends StatelessWidget {
                   height: SizeConfig.getProportionateScreenHeight(56),
                   width: SizeConfig.getProportionateScreenWidth(400),
                   text: "Login",
-                  press: () {
-                    context.go("/otp/$phoneNumber");
-                  },
+                  press: _login,
                   fontSize: SizeConfig.getProportionateTextSize(20),
                 ),
                 const SizedBox(
