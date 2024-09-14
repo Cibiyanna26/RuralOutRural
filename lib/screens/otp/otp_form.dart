@@ -52,11 +52,12 @@ class OtpForm extends StatelessWidget {
         ),
         SizedBox(height: SizeConfig.getProportionateScreenHeight(45)),
         DefaultButton(
-            text: "Continue",
-            width: SizeConfig.getProportionateScreenWidth(350),
-            height: SizeConfig.getProportionateScreenHeight(60),
-            fontSize: SizeConfig.getProportionateTextSize(18),
-            press: () => context.go("/")),
+          text: "Continue",
+          width: SizeConfig.getProportionateScreenWidth(350),
+          height: SizeConfig.getProportionateScreenHeight(60),
+          fontSize: SizeConfig.getProportionateTextSize(18),
+          press: () => context.go("/gender"),
+        ),
       ],
     );
   }

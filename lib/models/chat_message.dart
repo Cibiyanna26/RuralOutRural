@@ -7,12 +7,15 @@ class ChatMessage {
   final ChatMessageType messageType;
   final MessageStatus messageStatus;
   final bool isSender;
+  final DateTime time = DateTime.now();
+  final String? attachment;
 
   ChatMessage({
     this.text = '',
     required this.messageType,
     required this.messageStatus,
     required this.isSender,
+    this.attachment,
   });
 }
 

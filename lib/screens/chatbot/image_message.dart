@@ -1,20 +1,26 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:reach_out_rural/constants/constants.dart';
 
 class ImageMessage extends StatelessWidget {
-  const ImageMessage({super.key});
+  const ImageMessage({super.key, this.image});
+  final String? image;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.45,
+      height: MediaQuery.of(context).size.width * 0.45,
       child: AspectRatio(
         aspectRatio: 1.6,
         child: ClipRRect(
             borderRadius: BorderRadius.circular(15),
             child: Material(
               child: Ink.image(
-                  image: const AssetImage("assets/images/bp-check.jpg"),
+                  image: image != null
+                      ? FileImage(File(image!))
+                      : const AssetImage("assets/images/bp-check.jpg"),
                   fit: BoxFit.cover,
                   child: InkWell(
                     splashColor: kPrimaryColor.withOpacity(0.3),

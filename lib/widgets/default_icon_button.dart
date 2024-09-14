@@ -40,7 +40,7 @@ class DefaultIconButton extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 20),
             Icon(
               icon,
               color: kWhiteColor,

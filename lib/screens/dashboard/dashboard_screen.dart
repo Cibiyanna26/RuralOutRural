@@ -1,26 +1,98 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/models/doctor.dart';
+import 'package:reach_out_rural/repository/api/api_repository.dart';
+import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final SharedPreferencesHelper prefs = SharedPreferencesHelper();
+  final api = ApiRepository();
+  String? _name;
+  String? _gender;
+  String? _location;
+  late Future<List<Doctor>> futureDoctors;
+
+  @override
+  void initState() {
+    _getDoctors();
+    _initProfile();
+    super.initState();
+  }
+
+  void _search() async {
+    final extra = await futureDoctors;
+    // log("Extra: $extra");
+    if (!mounted) return;
+    context.push("/search", extra: extra);
+  }
+
+  void _initProfile() async {
+    final SharedPreferencesHelper storage = SharedPreferencesHelper();
+    final name = await storage.getString('name');
+    final gender = await storage.getString("gender");
+    final location = await storage.getString('location');
+
+    final List<Location> locations =
+        // ignore: body_might_complete_normally_catch_error
+        await locationFromAddress(location!).catchError((e) {
+      log(e);
+    });
+    final position = locations[0];
+    final placeList =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+    final place = placeList[0];
+    final address =
+        "${place.locality}, ${place.administrativeArea}, ${place.country}";
+
+    setState(() {
+      _name = name;
+      _gender = gender;
+      _location = address;
+    });
+  }
+
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   _initProfile();
+  // }
+
+  void _getDoctors() async {
+    // Fetch nearby doctors
+    setState(() {
+      futureDoctors = api.getDoctors();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final asset = _gender == "Male"
+        ? "assets/images/male.png"
+        : "assets/images/female.png";
     return Scaffold(
-      backgroundColor: kWhiteColor,
       appBar: AppBar(
         foregroundColor: kWhiteColor,
         title: const Text('Dashboard'),
         backgroundColor: kPrimaryColor,
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Center(
               child: Text(
-                "New York, USA",
-                style: TextStyle(fontSize: 16),
+                _location ?? "New Delhi",
+                style: const TextStyle(fontSize: 16),
               ),
             ),
           ),
@@ -30,8 +102,8 @@ class DashboardScreen extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
+            DrawerHeader(
+              decoration: const BoxDecoration(
                 color: Colors.blue,
               ),
               child: Column(
@@ -39,14 +111,26 @@ class DashboardScreen extends StatelessWidget {
                 children: <Widget>[
                   CircleAvatar(
                     radius: 30,
-                    backgroundImage: AssetImage(
-                        'assets/profile.jpg'), // Replace with actual image path
+                    backgroundColor: kWhiteColor,
+                    backgroundImage:
+                        AssetImage(asset), // Replace with actual image path
                   ),
-                  SizedBox(height: 10),
-                  Text(
-                    'User Name',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
+                  const SizedBox(height: 10),
+                  FutureBuilder<String?>(
+                      future: prefs.getString('name'),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          _name = snapshot.data;
+                          return Text(
+                            _name!,
+                            style: const TextStyle(
+                                color: kWhiteColor, fontSize: 20),
+                          );
+                        }
+
+                        return const Text('User',
+                            style: TextStyle(color: kWhiteColor, fontSize: 20));
+                      })
                 ],
               ),
             ),
@@ -68,7 +152,7 @@ class DashboardScreen extends StatelessWidget {
               title: const Text('Logout'),
               leading: const Icon(Iconsax.logout),
               onTap: () {
-                // Handle logout
+                context.go("/login");
               },
             ),
           ],
@@ -83,17 +167,8 @@ class DashboardScreen extends StatelessWidget {
               // Search input below the top app bar
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3), // changes position of shadow
-                    ),
-                  ],
-                ),
+                    color: const Color(0xffEFEFEF),
+                    borderRadius: BorderRadius.circular(14)),
                 child: TextField(
                   decoration: const InputDecoration(
                     hintText: 'Search for doctors...',
@@ -104,9 +179,7 @@ class DashboardScreen extends StatelessWidget {
                         color:
                             Colors.grey), // Search icon inside the input field
                   ),
-                  onTap: () {
-                    context.go("/search");
-                  },
+                  onTap: _search,
                 ),
               ),
               const SizedBox(height: 16), // Space between search bar and cards
@@ -143,14 +216,47 @@ class DashboardScreen extends StatelessWidget {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    _buildDoctorList(),
+                    FutureBuilder<List<Doctor>>(
+                      future: futureDoctors,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          final doctors = snapshot.data;
+                          return Column(
+                            children: doctors!.map((doctor) {
+                              return ListTile(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                hoverColor: kPrimaryColor.withOpacity(0.1),
+                                splashColor: kPrimaryColor.withOpacity(0.1),
+                                focusColor: kPrimaryColor.withOpacity(0.1),
+                                leading: const CircleAvatar(
+                                  backgroundImage: AssetImage(
+                                      'assets/images/default-doctor.png'),
+                                  backgroundColor: Colors.white,
+                                ),
+                                title: Text(doctor.name!),
+                                subtitle: Text(doctor.specialization!),
+                                trailing: const Icon(Icons.arrow_forward),
+                                onTap: () {
+                                  // Navigate to doctor details or booking
+                                  context.push("/doctor", extra: doctor);
+                                },
+                              );
+                            }).toList(),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('${snapshot.error}');
+                        }
+
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
                     const SizedBox(height: 10),
                     ElevatedButton(
-                      onPressed: () {
-                        context.go("/search");
-                      },
+                      onPressed: _search,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: kWhiteColor,
                       ),
                       child: const Text('View More Doctors'),
                     ),
@@ -196,84 +302,24 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
             child: ElevatedButton(
               onPressed: () {
                 // Add navigation or action here
               },
-              child: const Text('Learn More'),
               style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                foregroundColor: kWhiteColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
+              child: const Text('Learn More',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
       ),
     );
   }
-}
-
-Widget _buildCard(
-    {required String title, required String image, required Function() onTap}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: 150,
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        child: Column(
-          children: [
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(8)),
-              child: Image.asset(
-                image,
-                height: 100,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                title,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Widget _buildDoctorList() {
-  // Sample list of nearby doctors
-  final List<Map<String, String>> doctors = [
-    {'name': 'Dr. John Doe', 'specialty': 'Cardiologist'},
-    {'name': 'Dr. Jane Smith', 'specialty': 'Dermatologist'},
-    {'name': 'Dr. Michael Brown', 'specialty': 'General Physician'},
-  ];
-
-  return Column(
-    children: doctors.map((doctor) {
-      return ListTile(
-        leading: const CircleAvatar(
-          backgroundImage: AssetImage(
-              'assets/images/doctor_placeholder.jpg'), // Replace with actual doctor image
-        ),
-        title: Text(doctor['name']!),
-        subtitle: Text(doctor['specialty']!),
-        trailing: const Icon(Icons.arrow_forward),
-        onTap: () {
-          // Navigate to doctor details or booking
-        },
-      );
-    }).toList(),
-  );
 }

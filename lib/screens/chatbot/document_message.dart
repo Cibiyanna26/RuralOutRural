@@ -1,16 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
 import 'package:reach_out_rural/utils/file.dart';
 
 class DocumentMessage extends StatelessWidget {
-  const DocumentMessage(
-      {super.key, required this.fileName, required this.size});
-  final String fileName;
-  final int size;
+  const DocumentMessage({super.key, required this.document});
+  final String? document;
 
   @override
   Widget build(BuildContext context) {
+    final File document = File(this.document!);
+    String fileName = document.path.split('/').last.substring(0, 10);
+    int size = document.lengthSync();
     return TextButton(
       onPressed: () {},
       style: TextButton.styleFrom(

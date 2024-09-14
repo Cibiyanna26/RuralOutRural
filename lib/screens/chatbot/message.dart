@@ -25,14 +25,11 @@ class Message extends StatelessWidget {
         case ChatMessageType.audio:
           return AudioMessage(message: message);
         case ChatMessageType.video:
-          return const VideoMessage();
+          return VideoMessage(video: message.attachment);
         case ChatMessageType.image:
-          return const ImageMessage();
+          return ImageMessage(image: message.attachment);
         case ChatMessageType.file:
-          return const DocumentMessage(
-            fileName: "Medical Report",
-            size: 15232,
-          );
+          return DocumentMessage(document: message.attachment);
         default:
           return const SizedBox();
       }

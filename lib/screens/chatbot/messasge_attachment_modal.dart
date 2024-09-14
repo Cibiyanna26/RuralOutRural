@@ -1,11 +1,68 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/models/chat_message.dart';
 
-class MessageAttachmentModal extends StatelessWidget {
-  const MessageAttachmentModal({
-    super.key,
-  });
+class MessageAttachmentModal extends StatefulWidget {
+  const MessageAttachmentModal({super.key});
+
+  @override
+  State<MessageAttachmentModal> createState() => _MessageAttachmentModalState();
+}
+
+class _MessageAttachmentModalState extends State<MessageAttachmentModal> {
+  void _pickImage() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
+    if (result != null) {
+      final File file = File(result.files.single.path!);
+      const ChatMessageType messageType = ChatMessageType.image;
+      if (!mounted) return;
+      context.pop([file, messageType]);
+    }
+  }
+
+  void _pickVideo() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+    );
+    if (result != null) {
+      final File file = File(result.files.single.path!);
+      const ChatMessageType messageType = ChatMessageType.video;
+      if (!mounted) return;
+      context.pop([file, messageType]);
+    }
+  }
+
+  void _pickFile() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx', 'png', 'jpg'],
+    );
+    if (result != null) {
+      final File file = File(result.files.single.path!);
+      const ChatMessageType messageType = ChatMessageType.file;
+      if (!mounted) return;
+      context.pop([file, messageType]);
+    }
+  }
+
+  void _pickAudio() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.audio,
+    );
+    if (result != null) {
+      final File file = File(result.files.single.path!);
+      const ChatMessageType messageType = ChatMessageType.audio;
+      if (!mounted) return;
+      context.pop([file, messageType]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,30 +82,22 @@ class MessageAttachmentModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     MessageAttachmentCard(
-                      press: () {
-                        Navigator.pop(context);
-                      },
+                      press: _pickImage,
                       iconData: Iconsax.image,
                       title: "Image",
                     ),
                     MessageAttachmentCard(
-                      press: () {
-                        Navigator.pop(context);
-                      },
+                      press: _pickVideo,
                       iconData: Iconsax.video,
                       title: "Video",
                     ),
                     MessageAttachmentCard(
-                      press: () {
-                        Navigator.pop(context);
-                      },
+                      press: _pickFile,
                       iconData: Iconsax.document_text,
                       title: "File",
                     ),
                     MessageAttachmentCard(
-                      press: () {
-                        Navigator.pop(context);
-                      },
+                      press: _pickAudio,
                       iconData: Iconsax.music,
                       title: "Audio",
                     ),

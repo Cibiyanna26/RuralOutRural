@@ -50,6 +50,13 @@ dependencies:
   avatar_glow: ^3.0.1
   image_picker: ^1.1.2
   shared_preferences: ^2.3.2
+  flutter_ruler_picker: ^1.0.6
+  smooth_page_indicator: ^1.2.0+3
+  fluttertoast: ^8.2.8
+  vertical_weight_slider: ^2.6.0
+  geolocator: ^13.0.1
+  permission_handler: ^11.3.1
+  geocoding: ^3.0.0
 
 dev_dependencies:
   flutter_test:

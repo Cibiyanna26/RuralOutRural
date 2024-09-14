@@ -56,7 +56,7 @@ class CustomBottomNavbar extends StatelessWidget {
                   currentIndex: currentIndex,
                   index: 2),
               CustomBottomNavItem(
-                  icon: Iconsax.clipboard_text,
+                  icon: Iconsax.people,
                   onPressed: onPressed,
                   currentIndex: currentIndex,
                   index: 3),

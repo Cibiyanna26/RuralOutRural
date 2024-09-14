@@ -7,7 +7,8 @@ import 'package:reach_out_rural/constants/constants.dart';
 import 'package:reach_out_rural/repository/api/api_repository.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
-import 'package:reach_out_rural/widgets/default_button.dart';
+import 'package:reach_out_rural/utils/toast.dart';
+import 'package:reach_out_rural/widgets/default_button_loader.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,14 +21,32 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _textEditingController = TextEditingController();
   final SharedPreferencesHelper prefs = SharedPreferencesHelper();
   final authRepository = ApiRepository();
+  final toaster = ToastHelper();
+
   String _phoneNumber = "";
+  bool _isLoading = false;
 
   void _login() async {
+    if (_phoneNumber.isEmpty) {
+      toaster.showErrorCustomToastWithIcon("Phone number is required");
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+    });
     final data =
         await authRepository.patientLogin({"phonenumber": _phoneNumber});
+    setState(() {
+      _isLoading = false;
+    });
+    if (data["error"] != null) {
+      toaster.showErrorCustomToastWithIcon(data["data"]["error"]);
+      return;
+    }
     await prefs.setString("phoneNumber", _phoneNumber);
-    await prefs.setString("token", data["token"]);
+    // await prefs.setString("token", data["token"]);
 
+    toaster.showSuccessCustomToastWithIcon("Logged in successfully");
     if (!mounted) return;
 
     context.go("/otp/$_phoneNumber");
@@ -36,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
+    toaster.init(context);
     return Scaffold(
         body: SafeArea(
       child: SingleChildScrollView(
@@ -150,7 +170,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 //   ),
                 // ),
                 const SizedBox(height: 35),
-                DefaultButton(
+                DefaultButtonLoader(
+                  isLoading: _isLoading,
                   height: SizeConfig.getProportionateScreenHeight(56),
                   width: SizeConfig.getProportionateScreenWidth(400),
                   text: "Login",

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:reach_out_rural/models/doctor.dart';
 import 'package:reach_out_rural/models/edit_profile_objects.dart';
+import 'package:reach_out_rural/screens/age/age_screen.dart';
+import 'package:reach_out_rural/screens/bloodgroup/blood_group_screen.dart';
 import 'package:reach_out_rural/screens/chatbot/chat_bot_screen.dart';
 import 'package:reach_out_rural/screens/dashboard/dashboard_screen.dart';
+import 'package:reach_out_rural/screens/diagnosis/diagnosis_screen.dart';
+import 'package:reach_out_rural/screens/doctor/doctor_info_screen.dart';
 import 'package:reach_out_rural/screens/error/error_screen.dart';
+import 'package:reach_out_rural/screens/gender/gender_screen.dart';
+import 'package:reach_out_rural/screens/height/height_screen.dart';
 import 'package:reach_out_rural/screens/home/home_screen.dart';
 import 'package:reach_out_rural/screens/login/login_screen.dart';
 import 'package:reach_out_rural/screens/onboarding/onboarding_screen.dart';
@@ -15,6 +22,7 @@ import 'package:reach_out_rural/screens/profile/profile_screen.dart';
 import 'package:reach_out_rural/screens/register/register_screen.dart';
 import 'package:reach_out_rural/screens/scanner/scanner_screen.dart';
 import 'package:reach_out_rural/screens/search/search_screen.dart';
+import 'package:reach_out_rural/screens/weight/weight_screen.dart';
 
 final router = GoRouter(
   initialLocation: "/onboarding",
@@ -70,19 +78,46 @@ final router = GoRouter(
             child:
                 OtpScreen(phoneNumber: state.pathParameters['phoneNumber']!))),
     GoRoute(
-      path: "/search",
-      pageBuilder: (context, state) {
-        return _buildPageWithDefaultTransition(
-            context: context, state: state, child: const SearchScreen());
-      },
+        path: "/age",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const AgeScreen())),
+    GoRoute(
+        path: "/height",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const HeightScreen())),
+    GoRoute(
+        path: "/weight",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const WeightScreen())),
+    GoRoute(
+        path: "/gender",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const GenderScreen())),
+    GoRoute(
+        path: "/bloodgroup",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const BloodGroupScreen())),
+    GoRoute(
+        path: "/diagnosis",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const DiagnosisScreen())),
+    GoRoute(
+      path: "/doctor",
+      pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: DoctorInfoScreen(doctor: state.extra as Doctor)),
     ),
     GoRoute(
-      path: "/profile",
-      pageBuilder: (context, state) {
-        return _buildPageWithDefaultTransition(
-            context: context, state: state, child: const ProfileScreen());
-      },
-    ),
+        path: "/search",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: SearchScreen(doctors: state.extra! as List<Doctor>))),
+    GoRoute(
+        path: "/profile",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const ProfileScreen())),
     GoRoute(
       path: "/edit-profile",
       pageBuilder: (context, state) {
@@ -91,12 +126,12 @@ final router = GoRouter(
             context: context,
             state: state,
             child: EditProfileScreen(
-                name: obj.name,
-                email: obj.email,
-                phone: obj.phone,
-                age: obj.age,
-                location: obj.location,
-                onSave: obj.onSave));
+              name: obj.name,
+              email: obj.email,
+              phone: obj.phone,
+              age: obj.age,
+              location: obj.location,
+            ));
       },
     )
   ],

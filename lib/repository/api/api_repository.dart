@@ -1,4 +1,8 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
+import 'package:reach_out_rural/models/doctor.dart';
+import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 
 class ApiRepository {
   static final ApiRepository _instance = ApiRepository._internal();
@@ -13,14 +17,17 @@ class ApiRepository {
 
   final Dio dio = Dio();
 
-  static const String _iP = '172.17.12.83';
-  static const String _baseUrl = 'http://$_iP:8000/api';
-  static const String _patientLogin = '/users/patient/login';
-  static const String _doctorLogin = '/doctor/login/';
-  static const String _patientRegister = '/users/patient/register';
-  static const String _doctorRegister = '/doctor/register/';
-  static const String _checkNavigation = '/classify/v1/check-navigation/';
-  static const String _texttoText = '/classify/v1/text-voice-generator/';
+  static const String _baseUrl =
+      'https://ror-django-backend-7pxm.onrender.com/api/';
+  static const String _patientLogin = 'users/patient/login';
+  static const String _doctorLogin = 'doctor/login';
+  static const String _patientRegister = 'users/patient/register';
+  static const String _doctorRegister = 'doctor/register';
+  static const String _checkNavigation = 'classify/v1/check-navigation/';
+  static const String _getDoctors = 'users/get-doctors';
+  static const String _updateProfile = 'users/update-profile/?id=';
+  static const String _chatBot = 'classify/v1/medical-chatbot/?id=';
+  static const String _textToVoice = 'classify/v1/text-voice-generator/';
 
   void configureDio() {
     dio.options.baseUrl = _baseUrl;
@@ -37,12 +44,9 @@ class ApiRepository {
   }
 
   Future<Map<String, dynamic>> doctorLogin(
-      String email, String password) async {
+      Map<String, dynamic> doctorData) async {
     try {
-      final response = await dio.post(_doctorLogin, data: {
-        'email': email,
-        'password': password,
-      });
+      final response = await dio.post(_doctorLogin, data: doctorData);
       return response.data;
     } on DioException catch (e) {
       return _handleDioError(e);
@@ -69,6 +73,46 @@ class ApiRepository {
     }
   }
 
+  Future<List<Doctor>> getDoctors() async {
+    try {
+      final response = await dio.get(_getDoctors);
+      final List<Doctor> doctors = [];
+      for (final doctor in response.data) {
+        doctors.add(Doctor.fromJson(doctor));
+      }
+      log('Doctors: $doctors');
+      return doctors;
+    } on DioException catch (e) {
+      _handleDioError(e);
+      throw Exception('Failed to load doctors');
+    }
+  }
+
+  Future<Map<String, dynamic>> getDoctorBasedOnSpecialization(
+      String specialization) async {
+    try {
+      final response =
+          await dio.post('$_getDoctors?specialization=$specialization');
+      return response.data;
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile(
+      Map<String, dynamic> profileData) async {
+    try {
+      final SharedPreferencesHelper prefs = SharedPreferencesHelper();
+      final phoneNumber = await prefs.getString('phoneNumber');
+      final response = await dio.patch(
+          "$_updateProfile$phoneNumber&user_role=patient",
+          data: profileData);
+      return response.data;
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
   Future<Map<String, dynamic>> checkNavigation(
       Map<String, dynamic> navigationData) async {
     try {
@@ -79,9 +123,22 @@ class ApiRepository {
     }
   }
 
-  Future<Map<String, dynamic>> textToText(String text) async {
+  Future<Map<String, dynamic>> chatbot(Map<String, dynamic> chatBotData) async {
     try {
-      final response = await dio.post(_texttoText, data: {'text': text});
+      final SharedPreferencesHelper prefs = SharedPreferencesHelper();
+      final phoneNumber = await prefs.getString('phoneNumber');
+      final response =
+          await dio.post(_chatBot + phoneNumber!, data: chatBotData);
+      return response.data;
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> textToVoice(
+      Map<String, dynamic> textToVoiceData) async {
+    try {
+      final response = await dio.post(_textToVoice, data: textToVoiceData);
       return response.data;
     } on DioException catch (e) {
       return _handleDioError(e);
@@ -90,10 +147,10 @@ class ApiRepository {
 
   Map<String, dynamic> _handleDioError(DioException e) {
     if (e.response != null) {
-      print('Dio error!');
-      print('STATUS: ${e.response?.statusCode}');
-      print('DATA: ${e.response?.data}');
-      print('HEADERS: ${e.response?.headers}');
+      log('Dio error!');
+      log('STATUS: ${e.response?.statusCode}');
+      log('DATA: ${e.response?.data}');
+      log('HEADERS: ${e.response?.headers}');
       return {
         'error': true,
         'message':
@@ -101,8 +158,8 @@ class ApiRepository {
         'data': e.response?.data
       };
     } else {
-      print('Error sending request!');
-      print(e.message);
+      log('Error sending request!');
+      log(e.message.toString());
       return {
         'error': true,
         'message': e.message ?? 'An unknown error occurred',

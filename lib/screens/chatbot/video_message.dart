@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:reach_out_rural/constants/constants.dart';
 
 class VideoMessage extends StatelessWidget {
-  const VideoMessage({super.key});
+  const VideoMessage({super.key, this.video});
+  final String? video;
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +20,10 @@ class VideoMessage extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: Material(
                   child: Ink.image(
-                      image:
-                          const AssetImage("assets/images/bp-check-doctor.jpg"),
+                      image: video != null
+                          ? FileImage(File(video!))
+                          : const AssetImage(
+                              "assets/images/bp-check-doctor.jpg"),
                       fit: BoxFit.cover,
                       child: InkWell(
                         splashColor: kPrimaryColor.withOpacity(0.3),
