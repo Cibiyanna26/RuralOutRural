@@ -67,6 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           hospitals.map((hospital) => hospital.toJson()).toList();
       await storage.setString("hospitals", jsonEncode(jsonHospitals));
     }
+    if (!mounted) return;
     setState(() {
       _name = name;
       _gender = gender;
@@ -167,7 +168,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             ListTile(
-              title:  Text(
+              title: Text(
                 getTranslated(context, "profile"),
               ),
               leading: const Icon(Iconsax.user),

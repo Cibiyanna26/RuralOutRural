@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/models/chat_message.dart';
 import 'package:reach_out_rural/models/doctor.dart';
 import 'package:reach_out_rural/repository/api/api_repository.dart';
@@ -25,8 +26,19 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
   final List<ChatMessage> chatMessages = [demoChatMessages[0]];
   final TextEditingController _messageController = TextEditingController();
   int _currentMessageIndex = 0;
+  final ScrollController _scrollController = ScrollController();
+  final FocusNode _messageFocusNode = FocusNode();
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
 
   void _sendMessage() async {
+    _messageFocusNode.unfocus();
     final message = _messageController.text;
     if (message.isEmpty) {
       return;
@@ -40,10 +52,14 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
     setState(() {
       chatMessages.add(chatMessage);
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
     _messageController.clear();
+    final locale = await getLocale();
     Map<String, dynamic> data = {
       "text": message,
-      "lang": "en",
+      "lang": locale.languageCode,
     };
     final res = await api.chatbot(data);
     final textResponse = res['text_response'];
@@ -80,6 +96,9 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
         chatMessages.add(doctorMessage);
       });
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
   void _showAttachmentModal() async {
@@ -87,6 +106,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
         backgroundColor: Colors.transparent,
         context: context,
         builder: (context) => const MessageAttachmentModal());
+    _messageFocusNode.unfocus();
     if (result == null) return;
     final file = result[0] as File;
     final type = result[1] as ChatMessageType;
@@ -98,7 +118,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
       attachment: file.path,
     );
     final botChatReply = ChatMessage(
-      text: chatResponse[_currentMessageIndex++],
+      text: chatResponse[_currentMessageIndex++ % chatResponse.length],
       isSender: false,
       messageType: ChatMessageType.text,
       messageStatus: MessageStatus.viewed,
@@ -107,11 +127,16 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
       chatMessages.add(chatMessage);
       chatMessages.add(botChatReply);
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
   @override
   void dispose() {
     _messageController.dispose();
+    _scrollController.dispose();
+    _messageFocusNode.dispose();
     super.dispose();
   }
 
@@ -169,6 +194,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: ListView.builder(
+                controller: _scrollController,
                 itemCount: chatMessages.length,
                 itemBuilder: (context, index) =>
                     Message(message: chatMessages[index]),
@@ -201,6 +227,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
               children: [
                 Expanded(
                   child: TextField(
+                    focusNode: _messageFocusNode,
                     controller: _messageController,
                     style: const TextStyle(fontSize: 16, color: kBlackColor),
                     decoration: InputDecoration(
@@ -228,7 +255,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                       filled: true,
                       fillColor: Colors.blueGrey[50],
                       labelStyle: const TextStyle(fontSize: 12),
-                      contentPadding: const EdgeInsets.all(20),
+                      contentPadding: const EdgeInsets.all(18),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.blueGrey[50]!),
                         borderRadius: BorderRadius.circular(25),
