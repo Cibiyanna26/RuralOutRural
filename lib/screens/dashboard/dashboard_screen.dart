@@ -256,13 +256,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         if (snapshot.hasData) {
                           final hospitals = snapshot.data;
                           return Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 10),
                               Text(
                                 getTranslated(context, "nearby_hospitals"),
                                 style: const TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
+                              const SizedBox(height: 10),
                               SizedBox(
                                 height: 213,
                                 child: ListView.builder(
