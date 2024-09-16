@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_icon_button.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -19,7 +20,7 @@ class DiagnosisScreen extends StatefulWidget {
 class _DiagnosisScreenState extends State<DiagnosisScreen> {
   bool _isListening = false;
   late SpeechToText _speechToText;
-  String _text = 'Press the button and start speaking...';
+  String _text = '';
   // double _confidence = 1.0;
 
   @override
@@ -79,7 +80,8 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
               children: [
                 const SizedBox(height: 20),
                 Text(
-                  'Diagnosis',
+                  getTranslated(context, "bio"),
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: SizeConfig.getProportionateTextSize(32),
                     fontWeight: FontWeight.bold,
@@ -87,7 +89,9 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                 ),
                 const SizedBox(height: 30),
                 Text(
-                  _text,
+                  _text.isNotEmpty
+                      ? _text
+                      : getTranslated(context, "diagnosis_desc"),
                   style: TextStyle(
                     fontSize: SizeConfig.getProportionateTextSize(20),
                   ),
@@ -105,7 +109,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                     width: SizeConfig.getProportionateScreenWidth(320),
                     height: SizeConfig.getProportionateScreenHeight(60),
                     fontSize: SizeConfig.getProportionateTextSize(20),
-                    text: "Continue",
+                    text: getTranslated(context, "continue"),
                     icon: Iconsax.arrow_right_35,
                     press: _navigate),
                 const SizedBox(height: 20),

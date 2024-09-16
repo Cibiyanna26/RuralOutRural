@@ -3,6 +3,7 @@ import 'package:flutter_ruler_picker/flutter_ruler_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_icon_button.dart';
@@ -55,7 +56,7 @@ class _HeightScreenState extends State<HeightScreen> {
           height: double.infinity,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             const SizedBox(height: 10),
-            Text("What's your height?",
+            Text(getTranslated(context, "what_is_height"),
                 style: TextStyle(
                     fontSize: SizeConfig.getProportionateTextSize(25),
                     fontWeight: FontWeight.bold)),
@@ -105,7 +106,7 @@ class _HeightScreenState extends State<HeightScreen> {
                 width: SizeConfig.getProportionateScreenWidth(320),
                 height: SizeConfig.getProportionateScreenHeight(60),
                 fontSize: SizeConfig.getProportionateTextSize(20),
-                text: "Continue",
+                text: getTranslated(context, "continue"),
                 icon: Iconsax.arrow_right_35,
                 press: _continue),
             const SizedBox(height: 20),

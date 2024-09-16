@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:reach_out_rural/models/community.dart';
 import 'package:reach_out_rural/models/doctor.dart';
 import 'package:reach_out_rural/models/edit_profile_objects.dart';
+import 'package:reach_out_rural/models/hospital.dart';
 import 'package:reach_out_rural/screens/age/age_screen.dart';
 import 'package:reach_out_rural/screens/bloodgroup/blood_group_screen.dart';
+import 'package:reach_out_rural/screens/book-appointment/doctor_appointment.dart';
 import 'package:reach_out_rural/screens/chatbot/chat_bot_screen.dart';
+import 'package:reach_out_rural/screens/community/specialized_community.dart';
 import 'package:reach_out_rural/screens/dashboard/dashboard_screen.dart';
 import 'package:reach_out_rural/screens/diagnosis/diagnosis_screen.dart';
 import 'package:reach_out_rural/screens/doctor/doctor_info_screen.dart';
@@ -20,13 +24,22 @@ import 'package:reach_out_rural/screens/prescription/uploaded_prescription_scree
 import 'package:reach_out_rural/screens/profile/edit_profile_screen.dart';
 import 'package:reach_out_rural/screens/profile/profile_screen.dart';
 import 'package:reach_out_rural/screens/register/register_screen.dart';
+import 'package:reach_out_rural/screens/scanner/display_screen.dart';
 import 'package:reach_out_rural/screens/scanner/scanner_screen.dart';
+import 'package:reach_out_rural/screens/search/search_hospitals_screen.dart';
 import 'package:reach_out_rural/screens/search/search_screen.dart';
+import 'package:reach_out_rural/screens/video/video_screen.dart';
+import 'package:reach_out_rural/screens/voice/voice_screen.dart';
 import 'package:reach_out_rural/screens/weight/weight_screen.dart';
+import 'package:reach_out_rural/screens/splash/splash_screen.dart';
 
 final router = GoRouter(
-  initialLocation: "/onboarding",
+  initialLocation: "/splash",
   routes: [
+    GoRoute(
+        path: "/splash",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const SplashScreen())),
     GoRoute(
       path: '/',
       pageBuilder: (context, state) => _buildPageWithDefaultTransition(
@@ -102,6 +115,22 @@ final router = GoRouter(
         pageBuilder: (context, state) => _buildPageWithDefaultTransition(
             context: context, state: state, child: const DiagnosisScreen())),
     GoRoute(
+        path: "/analysis",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: DisplayPictureScreen(
+              imagePath: state.extra as String,
+            ))),
+    GoRoute(
+        path: "/voice",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const VoiceScreen())),
+    GoRoute(
+        path: "/video",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context, state: state, child: const VideoScreen())),
+    GoRoute(
       path: "/doctor",
       pageBuilder: (context, state) => _buildPageWithDefaultTransition(
           context: context,
@@ -114,6 +143,31 @@ final router = GoRouter(
             context: context,
             state: state,
             child: SearchScreen(doctors: state.extra! as List<Doctor>))),
+    GoRoute(
+        path: "/search-hospitals",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: SearchHospitalsScreen(
+                hospitals: state.extra! as List<Hospital>))),
+    GoRoute(
+        path: "/specialized-community",
+        pageBuilder: (context, state) {
+          final dstate = state.extra as Map<String, dynamic>;
+          final community = dstate["community"]! as Community;
+          final doctors = dstate["doctors"]! as List<Doctor>;
+          return _buildPageWithDefaultTransition(
+              context: context,
+              state: state,
+              child:
+                  SpecializedCommunity(community: community, doctors: doctors));
+        }),
+    GoRoute(
+        path: "/appointments",
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const DoctorAppointmentScreen())),
     GoRoute(
         path: "/profile",
         pageBuilder: (context, state) => _buildPageWithDefaultTransition(

@@ -40,7 +40,7 @@ dependencies:
   intl_phone_field: ^3.2.0
   pinput: ^5.0.0
   dio: ^5.7.0
-  intl: ^0.19.0
+  intl: any
   iconsax: ^0.0.8
   camera: ^0.11.0+2
   path_provider: ^2.1.4
@@ -57,6 +57,10 @@ dependencies:
   geolocator: ^13.0.1
   permission_handler: ^11.3.1
   geocoding: ^3.0.0
+  flutter_localizations:
+    sdk: flutter
+  flutter_tts: ^4.0.2
+  translator: ^1.0.0
 
 dev_dependencies:
   flutter_test:
@@ -84,6 +88,7 @@ flutter:
     - assets/animations/
     - assets/icons/
     - assets/images/
+    - lib/langs/
 
   fonts:
     - family: OpenSans

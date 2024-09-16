@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
 import 'package:reach_out_rural/models/chat_message.dart';
+import 'package:reach_out_rural/models/doctor.dart';
 import 'package:reach_out_rural/repository/api/api_repository.dart';
 import 'package:reach_out_rural/screens/chatbot/message.dart';
 import 'package:reach_out_rural/screens/chatbot/messasge_attachment_modal.dart';
@@ -55,6 +57,29 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
     setState(() {
       chatMessages.add(botMessage);
     });
+    final nearbyDoctors0 = res['doctors'] as List<dynamic>?;
+    if (nearbyDoctors0!.isNotEmpty) {
+      final nearbyDoctors = nearbyDoctors0
+          .map((doctor) => Doctor.fromJson(doctor as Map<String, dynamic>))
+          .toList();
+      String doctors = "Here are some nearby doctors\n\n";
+      int i = 1;
+      for (final doctor in nearbyDoctors) {
+        doctors += "${i++}) ${doctor.name} - ${doctor.specialization}\n";
+        doctors += "+${doctor.phoneNumber}\n";
+        doctors += "Experience: ${doctor.experienceYears} years\n";
+        doctors += "${doctor.locationName}\n\n";
+      }
+      final doctorMessage = ChatMessage(
+        text: doctors.trimRight(),
+        isSender: false,
+        messageType: ChatMessageType.text,
+        messageStatus: MessageStatus.viewed,
+      );
+      setState(() {
+        chatMessages.add(doctorMessage);
+      });
+    }
   }
 
   void _showAttachmentModal() async {
@@ -125,11 +150,15 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
         actions: [
           IconButton(
             icon: const Icon(Iconsax.call),
-            onPressed: () {},
+            onPressed: () {
+              context.push('/voice');
+            },
           ),
           IconButton(
             icon: const Icon(Iconsax.video),
-            onPressed: () {},
+            onPressed: () {
+              context.push('/video');
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -176,6 +205,8 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                     style: const TextStyle(fontSize: 16, color: kBlackColor),
                     decoration: InputDecoration(
                       hintText: 'Type your message...',
+                      hintStyle:
+                          const TextStyle(fontSize: 16, color: kGreyColor),
                       prefixIcon: IconButton(
                           splashColor: kPrimaryColor.withOpacity(0.3),
                           focusColor: kPrimaryColor.withOpacity(0.3),

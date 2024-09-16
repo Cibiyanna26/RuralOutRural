@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:developer';
 
 import 'package:camera/camera.dart';
@@ -61,17 +60,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
     try {
       await _initializeControllerFuture;
       final image = await _controller!.takePicture();
-      _showScanResultDialog("No disease detected. You are healthy!");
       if (!mounted) return;
 
       // If the picture was taken, display it on a new screen.
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => DisplayPictureScreen(
-            imagePath: image.path,
-          ),
-        ),
-      );
+      final res = await context.push('/analysis', extra: image.path) as List?;
+      if (res != null) {
+        _showScanResultDialog(res[0]);
+      } else {
+        _showScanResultDialog("No disease detected. You are healthy!");
+      }
     } catch (e) {
       log('Error taking picture: $e');
     }
@@ -135,33 +132,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
+            heroTag: 'toggleFlash',
             onPressed: _toggleFlash,
             child: Icon(_isFlashOn ? Iconsax.flash_slash : Iconsax.flash_1),
           ),
           const SizedBox(height: 15),
           FloatingActionButton(
+            heroTag: 'scanSkin',
             onPressed: _scanSkin,
             child: const Icon(Iconsax.camera),
           ),
         ],
       ),
-    );
-  }
-}
-
-class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
-
-  const DisplayPictureScreen({super.key, required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
-      body: SizedBox(
-          width: double.infinity,
-          height: double.infinity,
-          child: Image.file(File(imagePath))),
     );
   }
 }

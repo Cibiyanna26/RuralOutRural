@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lottie/lottie.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_icon_button.dart';
@@ -36,7 +37,7 @@ class _GenderScreenState extends State<GenderScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 10),
-                Text("What's your Age?",
+                Text(getTranslated(context, "what_is_gender"),
                     style: TextStyle(
                         fontSize: SizeConfig.getProportionateTextSize(25),
                         fontWeight: FontWeight.bold)),
@@ -45,18 +46,17 @@ class _GenderScreenState extends State<GenderScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildCard(
-                          "Male", "assets/animations/male.json", Iconsax.man,
-                          () {
+                      _buildCard(getTranslated(context, "male"),
+                          "assets/animations/male.json", Iconsax.man, () {
                         setState(() {
-                          _gender = "Male";
+                          _gender = getTranslated(context, "male");
                         });
                       }),
                       const SizedBox(width: 10),
-                      _buildCard("Female", "assets/animations/female.json",
-                          Iconsax.woman, () {
+                      _buildCard(getTranslated(context, "female"),
+                          "assets/animations/female.json", Iconsax.woman, () {
                         setState(() {
-                          _gender = "Female";
+                          _gender = getTranslated(context, "female");
                         });
                       }),
                     ],
@@ -67,7 +67,7 @@ class _GenderScreenState extends State<GenderScreen> {
                     width: SizeConfig.getProportionateScreenWidth(320),
                     height: SizeConfig.getProportionateScreenHeight(60),
                     fontSize: SizeConfig.getProportionateTextSize(20),
-                    text: "Continue",
+                    text: getTranslated(context, "continue"),
                     icon: Iconsax.arrow_right_35,
                     press: _navigate),
                 const SizedBox(height: 20),

@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/repository/api/api_repository.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
@@ -46,8 +47,9 @@ class _LoginScreenState extends State<LoginScreen> {
     await prefs.setString("phoneNumber", _phoneNumber);
     // await prefs.setString("token", data["token"]);
 
-    toaster.showSuccessCustomToastWithIcon("Logged in successfully");
     if (!mounted) return;
+    toaster.showSuccessCustomToastWithIcon(
+        getTranslated(context, "login_success"));
 
     context.go("/otp/$_phoneNumber");
   }
@@ -73,16 +75,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  'Login',
+                  getTranslated(context, "login"),
                   style: TextStyle(
                       fontSize: SizeConfig.getProportionateTextSize(32),
                       fontVariations: const [FontVariation.weight(800)]),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Let's experience the joy of telecare AI.",
-                  style: TextStyle(color: Colors.grey),
+                Text(
+                  getTranslated(context, "login_desc"),
+                  style: const TextStyle(color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 50),
@@ -90,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: SizeConfig.getProportionateScreenHeight(35),
                   child: Text(
-                    "Phone Number",
+                    getTranslated(context, "phone_number"),
                     style: TextStyle(
                       fontSize: SizeConfig.getProportionateTextSize(16),
                       fontVariations: const [FontVariation.weight(700)],
@@ -102,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _textEditingController,
                   decoration: InputDecoration(
                     counterText: "",
-                    labelText: 'Phone Number',
+                    labelText: getTranslated(context, "phone_number"),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -174,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   isLoading: _isLoading,
                   height: SizeConfig.getProportionateScreenHeight(56),
                   width: SizeConfig.getProportionateScreenWidth(400),
-                  text: "Login",
+                  text: getTranslated(context, "login"),
                   press: _login,
                   fontSize: SizeConfig.getProportionateTextSize(20),
                 ),
@@ -184,10 +186,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account? "),
+                    Text(getTranslated(context, "dont_have_account")),
                     TextButton(
-                      child: const Text('Register',
-                          style: TextStyle(
+                      child: Text(getTranslated(context, "register"),
+                          style: const TextStyle(
                               color: kPrimaryColor,
                               fontVariations: [FontVariation.weight(700)])),
                       onPressed: () {
@@ -197,8 +199,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 TextButton(
-                  child: const Text('Need Help?',
-                      style: TextStyle(color: kPrimaryColor)),
+                  child: Text(getTranslated(context, "need_help"),
+                      style: const TextStyle(color: kPrimaryColor)),
                   onPressed: () {},
                 ),
               ],

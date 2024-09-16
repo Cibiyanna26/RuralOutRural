@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/repository/api/api_repository.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
@@ -45,9 +46,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     await prefs.setString("phoneNumber", _phoneNumber);
     // await prefs.setString("token", data["token"]);
 
-    toaster.showSuccessCustomToastWithIcon("Registered successfully");
-
     if (!mounted) return;
+    toaster.showSuccessCustomToastWithIcon(
+        getTranslated(context, "register_success"));
 
     context.go("/otp/$_phoneNumber");
   }
@@ -79,16 +80,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  'Register',
+                  getTranslated(context, "register"),
                   style: TextStyle(
                       fontSize: SizeConfig.getProportionateTextSize(32),
                       fontVariations: const [FontVariation.weight(800)]),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Let's experience the joy of telecare AI.",
-                  style: TextStyle(color: Colors.grey),
+                Text(
+                  getTranslated(context, "register_desc"),
+                  style: const TextStyle(color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 50),
@@ -96,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   width: double.infinity,
                   height: SizeConfig.getProportionateScreenHeight(35),
                   child: Text(
-                    "Phone Number",
+                    getTranslated(context, "phone_number"),
                     style: TextStyle(
                       fontSize: SizeConfig.getProportionateTextSize(16),
                       fontVariations: const [FontVariation.weight(700)],
@@ -108,7 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _textEditingController,
                   decoration: InputDecoration(
                     counterText: "",
-                    labelText: 'Phone Number',
+                    labelText: getTranslated(context, "phone_number"),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -217,7 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   isLoading: _isLoading,
                   height: SizeConfig.getProportionateScreenHeight(56),
                   width: SizeConfig.getProportionateScreenWidth(400),
-                  text: "Register",
+                  text: getTranslated(context, "register"),
                   press: _register,
                   fontSize: SizeConfig.getProportionateTextSize(20),
                 ),
@@ -227,10 +228,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account? "),
+                    Text(getTranslated(context, "have_account")),
                     TextButton(
-                      child: const Text('Login',
-                          style: TextStyle(
+                      child: Text(getTranslated(context, "login"),
+                          style: const TextStyle(
                               color: kPrimaryColor,
                               fontVariations: [FontVariation.weight(700)])),
                       onPressed: () {

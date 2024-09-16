@@ -6,48 +6,51 @@ class Community {
   final int memberCount;
   final String description;
   final Icon icon;
+  final Color color;
 
   Community(
       {required this.name,
       required this.memberCount,
       required this.description,
-      required this.icon});
+      required this.icon,
+      required this.color});
 }
 
 List<Community> communities = [
   Community(
-    name: 'Community 1',
+    name: 'Cardiologist',
     memberCount: 100,
-    description:
-        'This is a community for people who are interested in Flutter development.',
-    icon: const Icon(Iconsax.activity),
+    description: 'This is a community for people who are need of Cardiologist.',
+    icon: const Icon(Iconsax.heart, color: Colors.pinkAccent),
+    color: Colors.pink,
   ),
   Community(
-    name: 'Community 2',
+    name: 'Dentist',
     memberCount: 200,
-    description:
-        'This is a community for people who are interested in Android development.',
-    icon: const Icon(Iconsax.alarm),
+    description: 'This is a community for people who are need of Dentist.',
+    icon: const Icon(Iconsax.activity, color: Colors.blueAccent),
+    color: Colors.blue,
   ),
   Community(
-    name: 'Community 3',
+    name: 'Dermatologist',
     memberCount: 300,
     description:
-        'This is a community for people who are interested in iOS development.',
-    icon: const Icon(Iconsax.clock),
+        'This is a community for people who are need of Dermatologist.',
+    icon: const Icon(Iconsax.personalcard, color: Colors.orangeAccent),
+    color: Colors.orange,
   ),
   Community(
-    name: 'Community 4',
+    name: 'Orthopedic',
     memberCount: 400,
-    description:
-        'This is a community for people who are interested in Web development.',
-    icon: const Icon(Iconsax.cloud),
+    description: 'This is a community for people who are need of Orthopedic.',
+    icon: const Icon(Iconsax.hospital, color: Colors.greenAccent),
+    color: Colors.green,
   ),
   Community(
-    name: 'Community 5',
+    name: 'Psychiatrist',
     memberCount: 500,
-    description:
-        'This is a community for people who are interested in UI/UX design.',
-    icon: const Icon(Iconsax.bank),
+    description: 'This is a community for people who are need of Psychiatrist.',
+    icon: const Icon(Iconsax.profile_2user, color: Colors.purpleAccent),
+    color: Colors.purple,
   ),
 ];

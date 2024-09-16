@@ -45,3 +45,24 @@ const List<String> chatResponse = [
       "\n\tTreatment:\n"
       "\tRingworm can be treated with over-the-counter antifungal creams, lotions, or sprays. However, if the infection is severe or does not respond to over-the-counter treatment, you may need to see a doctor for a prescription antifungal medication.\n"
 ];
+
+const languageList = [
+  "en",
+  "es",
+  "hi",
+  "bn",
+  "te",
+  "ta",
+  "ur",
+  "gu",
+  "kn",
+  "or",
+  "ml",
+  "pa",
+  "as",
+  "mr",
+  "ne",
+  "si",
+];
+
+

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/screens/onboarding/onboarding_content.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_button.dart';
@@ -109,8 +110,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
       height: SizeConfig.getProportionateScreenHeight(56),
       fontSize: SizeConfig.getProportionateTextSize(18),
       text: _currentPage == onBoardingScreens.length - 1
-          ? 'Get Started'
-          : 'Continue',
+          ? getTranslated(context, 'get_started')
+          : getTranslated(context, 'continue'),
       press: _onButtonPressed,
     );
   }

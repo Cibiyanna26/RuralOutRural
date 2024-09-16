@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/models/doctor.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -12,14 +14,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  // final List<String> _doctors = [
-  //   "Dr. Smith",
-  //   "Dr. Johnson",
-  //   "Dr. Lee",
-  //   "Dr. Davis",
-  //   "Dr. Miller",
-  //   // Add more doctor names or data here
-  // ];
+
   List<Doctor> _filteredDoctors = [];
 
   @override
@@ -42,7 +37,9 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search Doctors'),
+        title:  Text(
+          getTranslated(context, 'search_doctorss'),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -54,13 +51,15 @@ class _SearchScreenState extends State<SearchScreen> {
                   borderRadius: BorderRadius.circular(14)),
               child: TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  labelText: 'Search for doctors',
+                decoration:  InputDecoration(
+                  labelText: getTranslated(context, "search_for_doctors"),
+                  labelStyle: const TextStyle(color: kGreyColor),
                   border: InputBorder.none,
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
                 onChanged: _filterDoctors,
+                style: const TextStyle(color: kBlackColor),
               ),
             ),
             const SizedBox(height: 16),

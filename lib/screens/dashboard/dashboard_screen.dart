@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -5,7 +6,9 @@ import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/models/doctor.dart';
+import 'package:reach_out_rural/models/hospital.dart';
 import 'package:reach_out_rural/repository/api/api_repository.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 
@@ -23,10 +26,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _gender;
   String? _location;
   late Future<List<Doctor>> futureDoctors;
+  late Future<List<Hospital>> futureHospitals;
 
   @override
   void initState() {
     _getDoctors();
+    _getHospitals();
     _initProfile();
     super.initState();
   }
@@ -38,41 +43,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
     context.push("/search", extra: extra);
   }
 
+  void _searchHospitals() async {
+    final extra = await futureHospitals;
+    // log("Extra: $extra");
+    if (!mounted) return;
+    context.push("/search-hospitals", extra: extra);
+  }
+
   void _initProfile() async {
     final SharedPreferencesHelper storage = SharedPreferencesHelper();
     final name = await storage.getString('name');
     final gender = await storage.getString("gender");
-    final location = await storage.getString('location');
-
-    final List<Location> locations =
-        // ignore: body_might_complete_normally_catch_error
-        await locationFromAddress(location!).catchError((e) {
-      log(e);
-    });
-    final position = locations[0];
-    final placeList =
-        await placemarkFromCoordinates(position.latitude, position.longitude);
-    final place = placeList[0];
-    final address =
-        "${place.locality}, ${place.administrativeArea}, ${place.country}";
-
+    final doctors = await api.getDoctors();
+    final hospitals = await api.getNearbyHospitals();
+    if (doctors.isNotEmpty) {
+      log("Doctors: $doctors");
+      final jsonDoctors = doctors.map((doctor) => doctor.toJson()).toList();
+      await storage.setString("doctors", jsonEncode(jsonDoctors));
+    }
+    if (hospitals.isNotEmpty) {
+      log("Hospitals: $hospitals");
+      final jsonHospitals =
+          hospitals.map((hospital) => hospital.toJson()).toList();
+      await storage.setString("hospitals", jsonEncode(jsonHospitals));
+    }
     setState(() {
       _name = name;
       _gender = gender;
-      _location = address;
     });
+    final location = await storage.getString('location');
+    if (location != null) {
+      final List<Location> locations =
+          // ignore: body_might_complete_normally_catch_error
+          await locationFromAddress(location).catchError((e) {
+        log(e);
+      });
+      final position = locations[0];
+      final placeList =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      final place = placeList[0];
+      final address =
+          "${place.locality}, ${place.administrativeArea}, ${place.country}";
+      setState(() {
+        _location = address;
+      });
+    }
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   _initProfile();
-  // }
+  @override
+  void didChangeDependencies() {
+    _initProfile();
+    super.didChangeDependencies();
+  }
 
   void _getDoctors() async {
     // Fetch nearby doctors
     setState(() {
       futureDoctors = api.getDoctors();
+    });
+  }
+
+  void _getHospitals() async {
+    // Fetch nearby hospitals
+    setState(() {
+      futureHospitals = api.getNearbyHospitals();
     });
   }
 
@@ -84,15 +118,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         foregroundColor: kWhiteColor,
-        title: const Text('Dashboard'),
+        // title: const Text('Dashboard'),
         backgroundColor: kPrimaryColor,
         actions: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Center(
-              child: Text(
-                _location ?? "New Delhi",
-                style: const TextStyle(fontSize: 16),
+              child: Row(
+                children: [
+                  const Icon(
+                    Iconsax.location,
+                    size: 25,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    _location ?? "New Delhi",
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
               ),
             ),
           ),
@@ -116,40 +159,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         AssetImage(asset), // Replace with actual image path
                   ),
                   const SizedBox(height: 10),
-                  FutureBuilder<String?>(
-                      future: prefs.getString('name'),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          _name = snapshot.data;
-                          return Text(
-                            _name!,
-                            style: const TextStyle(
-                                color: kWhiteColor, fontSize: 20),
-                          );
-                        }
-
-                        return const Text('User',
-                            style: TextStyle(color: kWhiteColor, fontSize: 20));
-                      })
+                  Text(
+                    _name ?? "User",
+                    style: const TextStyle(color: kWhiteColor, fontSize: 20),
+                  ),
                 ],
               ),
             ),
             ListTile(
-              title: const Text('Profile'),
+              title:  Text(
+                getTranslated(context, "profile"),
+              ),
               leading: const Icon(Iconsax.user),
               onTap: () {
                 context.push("/profile");
               },
             ),
             ListTile(
-              title: const Text('Prescriptions'),
+              title: Text(
+                getTranslated(context, "prescriptions"),
+              ),
               leading: const Icon(Iconsax.document),
               onTap: () {
                 context.push("/prescription");
               },
             ),
             ListTile(
-              title: const Text('Logout'),
+              title: Text(
+                getTranslated(context, "logout"),
+              ),
               leading: const Icon(Iconsax.logout),
               onTap: () {
                 context.go("/login");
@@ -170,12 +208,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: const Color(0xffEFEFEF),
                     borderRadius: BorderRadius.circular(14)),
                 child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Search for doctors...',
+                  decoration: InputDecoration(
+                    hintStyle: const TextStyle(color: kGreyColor),
+                    hintText: getTranslated(context, "search_for_doctor"),
                     border: InputBorder.none,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    prefixIcon: Icon(Icons.search,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    prefixIcon: const Icon(Icons.search,
                         color:
                             Colors.grey), // Search icon inside the input field
                   ),
@@ -183,14 +222,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 16), // Space between search bar and cards
-
               // Row with two cards
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: _buildCard(
-                      'Book Appointments',
+                      getTranslated(context, "book_appointment"),
                       'assets/images/appointment_image.jpg', // Replace with your image asset path
                       context,
                     ),
@@ -198,7 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 16), // Space between the two cards
                   Expanded(
                     child: _buildCard(
-                      'Instant Video Consultation',
+                      getTranslated(context, "instant_vid_consultation"),
                       'assets/images/video_consultation_image.jpg', // Replace with your image asset path
                       context,
                     ),
@@ -210,10 +248,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Nearby Doctors",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Text(
+                      getTranslated(context, "nearby_hospitals"),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    FutureBuilder<List<Hospital>>(
+                      future: futureHospitals,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          final hospitals = snapshot.data;
+                          return SizedBox(
+                            height: 213,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: hospitals!.length,
+                              itemBuilder: (context, index) {
+                                return HospitalCard(hospital: hospitals[index]);
+                              },
+                            ),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('${snapshot.error}');
+                        }
+
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: _searchHospitals,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: kWhiteColor,
+                      ),
+                      child:
+                          Text(getTranslated(context, "view_more_hospitals")),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      getTranslated(context, "nearby_doctors"),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Doctor>>(
@@ -258,7 +334,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: kWhiteColor,
                       ),
-                      child: const Text('View More Doctors'),
+                      child: Text(getTranslated(context, "view_more_doctors")),
                     ),
                   ],
                 ),
@@ -319,6 +395,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class HospitalCard extends StatelessWidget {
+  final Hospital hospital;
+
+  const HospitalCard({super.key, required this.hospital});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      elevation: 5,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          // Navigate to hospital details or booking
+          // context.push("/hospital", extra: hospital);
+        },
+        child: SizedBox(
+          width: 185,
+          child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircleAvatar(
+                    radius: 27,
+                    child:
+                        Icon(Iconsax.hospital, size: 27, color: Colors.blue)),
+                const SizedBox(height: 8),
+                Text(
+                  hospital.name,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  hospital.speciality,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '${hospital.distance.toStringAsFixed(1)} km away',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

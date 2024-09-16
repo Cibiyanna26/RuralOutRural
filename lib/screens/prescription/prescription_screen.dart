@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/widgets/default_icon_button.dart';
 
 class PrescriptionScreen extends StatelessWidget {
@@ -28,9 +29,9 @@ class PrescriptionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kWhiteColor,
       appBar: AppBar(
-        title: const Text('My Prescriptions'),
+        title: Text(getTranslated(context, "my_prescriptions")),
+        centerTitle: true,
         backgroundColor: kPrimaryColor,
         foregroundColor: kWhiteColor,
       ),
@@ -50,9 +51,9 @@ class PrescriptionScreen extends StatelessWidget {
               const SizedBox(height: 10),
 
               // Old Prescriptions List
-              const Text(
-                'Upload Prescription',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              Text(
+                getTranslated(context, "upload_prescription"),
+                style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 15),
 
@@ -61,7 +62,7 @@ class PrescriptionScreen extends StatelessWidget {
                   width: 350,
                   height: 70,
                   fontSize: 20,
-                  text: 'Upload Prescription',
+                  text: getTranslated(context, "upload_prescription"),
                   icon: Iconsax.document_upload,
                   press: () async {
                     File? prescription = await _pickPrescription();

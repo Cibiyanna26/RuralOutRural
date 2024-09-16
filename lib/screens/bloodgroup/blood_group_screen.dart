@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_button.dart';
@@ -43,10 +44,12 @@ class _BloodGroupScreenState extends State<BloodGroupScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 10),
-              Text("What's your blood group?",
+              Text(getTranslated(context, "what_is_blood_group"),
+              textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: SizeConfig.getProportionateTextSize(25),
-                      fontWeight: FontWeight.bold)),
+                      fontWeight: FontWeight.bold,
+                      )),
               const SizedBox(height: 10),
               Expanded(
                 child: PageView.builder(
@@ -110,7 +113,7 @@ class _BloodGroupScreenState extends State<BloodGroupScreen> {
                 width: SizeConfig.getProportionateScreenWidth(320),
                 height: SizeConfig.getProportionateScreenHeight(60),
                 fontSize: SizeConfig.getProportionateTextSize(20),
-                text: "Continue",
+                text: getTranslated(context, "continue"),
                 press: _continue,
               ),
               const SizedBox(height: 20),

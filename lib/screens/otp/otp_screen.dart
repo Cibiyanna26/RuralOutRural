@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/screens/otp/otp_form.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 
@@ -12,7 +13,7 @@ class OtpScreen extends StatelessWidget {
     SizeConfig.init(context);
     return Scaffold(
         appBar: AppBar(
-            title: const Text("OTP Verification"),
+            title: Text(getTranslated(context, "otp_verification")),
             centerTitle: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             titleTextStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -31,7 +32,7 @@ class OtpScreen extends StatelessWidget {
                         height: SizeConfig.getProportionateScreenHeight(60)),
                     Text.rich(
                       TextSpan(
-                        text: "We sent your code to ",
+                        text: getTranslated(context, "otp_verification_desc"),
                         children: [
                           TextSpan(
                             text: "+91$phoneNumber",
@@ -41,14 +42,14 @@ class OtpScreen extends StatelessWidget {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    buildTimer(),
+                    buildTimer(context),
                     const OtpForm(),
                     SizedBox(
                         height: SizeConfig.getProportionateScreenHeight(30)),
                     TextButton(
                       onPressed: () {},
-                      child: const Text(
-                        "Resend OTP Code",
+                      child: Text(
+                        getTranslated(context, "resend_otp"),
                       ),
                     ),
                   ],
@@ -59,11 +60,11 @@ class OtpScreen extends StatelessWidget {
         ));
   }
 
-  Row buildTimer() {
+  Row buildTimer(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text("This code will expire in "),
+        Text(getTranslated(context, "otp_expire")),
         TweenAnimationBuilder(
           tween: Tween(begin: 60.0, end: 00.0),
           duration: const Duration(seconds: 60),

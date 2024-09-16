@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
@@ -34,24 +36,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // final latitude = await storage.getString('latitude');
     // final longitude = await storage.getString('longitude');
     final location = await storage.getString('location');
-    final List<Location> locations =
-        // ignore: body_might_complete_normally_catch_error
-        await locationFromAddress(location!).catchError((e) {
-      print(e);
-    });
-    final position = locations[0];
-    final placeList =
-        await placemarkFromCoordinates(position.latitude, position.longitude);
-    final place = placeList[0];
-    final address =
-        "${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
+
     setState(() {
       _name = name ?? "";
       _email = email ?? "";
       _phone = phone ?? "";
       _age = age?.toString() ?? "";
-      _location = address;
     });
+    if (location != null) {
+      final List<Location> locations =
+          // ignore: body_might_complete_normally_catch_error
+          await locationFromAddress(location).catchError((e) {
+        log(e);
+      });
+      final position = locations[0];
+      final placeList =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      final place = placeList[0];
+      final address =
+          "${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
+      setState(() {
+        _location = address;
+      });
+    }
   }
 
   Future<void> _pickImage() async {

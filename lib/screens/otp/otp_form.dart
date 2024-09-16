@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import 'package:reach_out_rural/constants/constants.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_button.dart';
 
@@ -11,7 +12,7 @@ final defaultPinTheme = PinTheme(
   height: 90,
   textStyle: TextStyle(
     fontSize: SizeConfig.getProportionateTextSize(24),
-    color: Colors.black,
+    color: kWhiteColor,
   ),
   decoration: BoxDecoration(
     color: const Color(0x91DEE7F0),
@@ -31,6 +32,7 @@ class OtpForm extends StatelessWidget {
         Pinput(
           // controller: controller.otp,
           length: 6,
+
           defaultPinTheme: defaultPinTheme,
           focusedPinTheme: defaultPinTheme.copyWith(
             decoration: defaultPinTheme.decoration!.copyWith(
@@ -52,7 +54,7 @@ class OtpForm extends StatelessWidget {
         ),
         SizedBox(height: SizeConfig.getProportionateScreenHeight(45)),
         DefaultButton(
-          text: "Continue",
+          text: getTranslated(context, "continue"),
           width: SizeConfig.getProportionateScreenWidth(350),
           height: SizeConfig.getProportionateScreenHeight(60),
           fontSize: SizeConfig.getProportionateTextSize(18),

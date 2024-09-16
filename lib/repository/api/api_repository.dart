@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:reach_out_rural/models/doctor.dart';
+import 'package:reach_out_rural/models/hospital.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 
 class ApiRepository {
@@ -28,6 +29,9 @@ class ApiRepository {
   static const String _updateProfile = 'users/update-profile/?id=';
   static const String _chatBot = 'classify/v1/medical-chatbot/?id=';
   static const String _textToVoice = 'classify/v1/text-voice-generator/';
+  static const String _predict =
+      'https://invisible-fredrika-koyeb-cibiyanna-organization-af4ed798.koyeb.app/predict';
+  static const String _getNearbyHospitals = 'users/nearby-hospital/?id=';
 
   void configureDio() {
     dio.options.baseUrl = _baseUrl;
@@ -88,6 +92,24 @@ class ApiRepository {
     }
   }
 
+  Future<List<Hospital>> getNearbyHospitals() async {
+    try {
+      final SharedPreferencesHelper prefs = SharedPreferencesHelper();
+      final phoneNumber = await prefs.getString('phoneNumber');
+      final response = await dio
+          .get('$_getNearbyHospitals${phoneNumber!}&user_role=patient');
+      final List<Hospital> hospitals = [];
+      for (final hospital in response.data["hospitals"]) {
+        hospitals.add(Hospital.fromJson(hospital));
+      }
+      log('Hospitals: $hospitals');
+      return hospitals;
+    } on DioException catch (e) {
+      _handleDioError(e);
+      throw Exception('Failed to load doctors');
+    }
+  }
+
   Future<Map<String, dynamic>> getDoctorBasedOnSpecialization(
       String specialization) async {
     try {
@@ -139,6 +161,15 @@ class ApiRepository {
       Map<String, dynamic> textToVoiceData) async {
     try {
       final response = await dio.post(_textToVoice, data: textToVoiceData);
+      return response.data;
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> predict(FormData predictData) async {
+    try {
+      final response = await dio.post(_predict, data: predictData);
       return response.data;
     } on DioException catch (e) {
       return _handleDioError(e);

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/repository/api/api_repository.dart';
 import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
@@ -69,6 +70,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     storage.setString('phoneNumber', phone);
     storage.setString('age', age);
     storage.setString('location', location);
+
     final List<Location> locations =
         // ignore: body_might_complete_normally_catch_error
         await locationFromAddress(location).catchError((e) {
@@ -100,8 +102,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
     log(res.toString());
-    toaster.showSuccessCustomToastWithIcon("Profile updated successfully");
-    // if (!mounted) return;
+
+    if (!mounted) return;
+    toaster.showSuccessCustomToastWithIcon(
+        getTranslated(context, "proflie_update_success"));
     // context.pop();
   }
 
@@ -110,7 +114,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(
+          getTranslated(context, "edit_profile"),
+        ),
         //   actions: [
         //     IconButton(
         //       icon: const Icon(Icons.save),
@@ -127,7 +133,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'Name',
+                labelText: getTranslated(context, "name"),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -137,7 +143,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Email',
+                  labelText: getTranslated(context, "email"),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -146,7 +152,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
               controller: _phoneController,
               decoration: InputDecoration(
-                labelText: 'Phone',
+                labelText: getTranslated(context, "phone"),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -156,7 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
               controller: _ageController,
               decoration: InputDecoration(
-                labelText: 'Age',
+                labelText: getTranslated(context, "age"),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -167,7 +173,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
               controller: _locationController,
               decoration: InputDecoration(
-                labelText: 'Location',
+                labelText: getTranslated(context, "location"),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -178,7 +184,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 width: SizeConfig.getProportionateScreenWidth(320),
                 height: SizeConfig.getProportionateScreenHeight(60),
                 fontSize: SizeConfig.getProportionateTextSize(20),
-                text: "Save",
+                text: getTranslated(context, "save"),
                 icon: Iconsax.tick_square,
                 press: _saveProfile),
             const SizedBox(height: 20),
