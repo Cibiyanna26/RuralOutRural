@@ -53,7 +53,9 @@ class PrescriptionScreen extends StatelessWidget {
               // Old Prescriptions List
               Text(
                 getTranslated(context, "upload_prescription"),
-                style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 15),
 
@@ -61,7 +63,7 @@ class PrescriptionScreen extends StatelessWidget {
               DefaultIconButton(
                   width: 350,
                   height: 70,
-                  fontSize: 20,
+                  fontSize: 16,
                   text: getTranslated(context, "upload_prescription"),
                   icon: Iconsax.document_upload,
                   press: () async {

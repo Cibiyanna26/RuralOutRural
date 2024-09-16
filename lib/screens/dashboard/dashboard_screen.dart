@@ -209,6 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: const Color(0xffEFEFEF),
                     borderRadius: BorderRadius.circular(14)),
                 child: TextField(
+                  style: const TextStyle(color: kBlackColor),
                   decoration: InputDecoration(
                     hintStyle: const TextStyle(color: kGreyColor),
                     hintText: getTranslated(context, "search_for_doctor"),
@@ -249,44 +250,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      getTranslated(context, "nearby_hospitals"),
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
                     FutureBuilder<List<Hospital>>(
                       future: futureHospitals,
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           final hospitals = snapshot.data;
-                          return SizedBox(
-                            height: 213,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: hospitals!.length,
-                              itemBuilder: (context, index) {
-                                return HospitalCard(hospital: hospitals[index]);
-                              },
-                            ),
+                          return Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              Text(
+                                getTranslated(context, "nearby_hospitals"),
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(
+                                height: 213,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: hospitals!.length,
+                                  itemBuilder: (context, index) {
+                                    return HospitalCard(
+                                        hospital: hospitals[index]);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              ElevatedButton(
+                                onPressed: _searchHospitals,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: kWhiteColor,
+                                ),
+                                child: Text(getTranslated(
+                                    context, "view_more_hospitals")),
+                              ),
+                              const SizedBox(height: 10),
+                            ],
                           );
                         } else if (snapshot.hasError) {
-                          return Text('${snapshot.error}');
+                          log('${snapshot.error}');
+                          return const SizedBox.shrink();
                         }
 
-                        return const Center(child: CircularProgressIndicator());
+                        return const SizedBox.shrink();
+                        // return const Center(child: CircularProgressIndicator());
                       },
                     ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: _searchHospitals,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kWhiteColor,
-                      ),
-                      child:
-                          Text(getTranslated(context, "view_more_hospitals")),
-                    ),
-                    const SizedBox(height: 10),
                     Text(
                       getTranslated(context, "nearby_doctors"),
                       style: const TextStyle(
@@ -391,8 +399,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: const Text('Learn More',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(getTranslated(context, "learn_more"),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center),
             ),
           ),
         ],

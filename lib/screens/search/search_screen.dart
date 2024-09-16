@@ -37,8 +37,8 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:  Text(
-          getTranslated(context, 'search_doctorss'),
+        title: Text(
+          getTranslated(context, 'search_doctors'),
         ),
       ),
       body: Padding(
@@ -51,7 +51,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   borderRadius: BorderRadius.circular(14)),
               child: TextField(
                 controller: _searchController,
-                decoration:  InputDecoration(
+                decoration: InputDecoration(
                   labelText: getTranslated(context, "search_for_doctors"),
                   labelStyle: const TextStyle(color: kGreyColor),
                   border: InputBorder.none,
