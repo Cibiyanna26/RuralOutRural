@@ -83,18 +83,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final placeList =
           await placemarkFromCoordinates(position.latitude, position.longitude);
       final place = placeList[0];
-      final address =
-          "${place.locality}, ${place.administrativeArea}, ${place.country}";
+      final shortenedAddress = _shortenAddress(
+        locality: place.locality,
+        administrativeArea: place.administrativeArea,
+        country: place.country,
+      );
+      // var address =
+      //     "${place.locality}, ${place.administrativeArea}, ${place.country}";
+      if (!mounted) return;
       setState(() {
-        _location = address;
+        _location = shortenedAddress;
       });
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    _initProfile();
-    super.didChangeDependencies();
+  // @override
+  // void didChangeDependencies() {
+  //   _initProfile();
+  //   super.didChangeDependencies();
+  // }
+
+  String _shortenAddress({
+    String? locality,
+    String? administrativeArea,
+    String? country,
+  }) {
+    String shortenedAdministrativeArea = administrativeArea ?? '';
+    String shortenedCountry = country ?? '';
+
+    if (stateMap.containsKey(administrativeArea)) {
+      shortenedAdministrativeArea = stateMap[administrativeArea]!;
+    }
+
+    if (countryMap.containsKey(country)) {
+      shortenedCountry = countryMap[country]!;
+    }
+
+    return "${locality ?? ''}, $shortenedAdministrativeArea, $shortenedCountry";
   }
 
   void _getDoctors() async {
@@ -135,6 +160,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text(
                     _location ?? "New Delhi",
                     style: const TextStyle(fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -257,6 +283,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           final hospitals = snapshot.data;
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 getTranslated(context, "nearby_hospitals"),

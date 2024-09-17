@@ -38,6 +38,7 @@ class _GenderScreenState extends State<GenderScreen> {
               children: [
                 const SizedBox(height: 10),
                 Text(getTranslated(context, "what_is_gender"),
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: SizeConfig.getProportionateTextSize(25),
                         fontWeight: FontWeight.bold)),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -48,52 +49,28 @@ class _HomeScreenState extends State<HomeScreen> {
   String _text = '';
   Locale _locale = const Locale('en');
   final translator = GoogleTranslator();
+  final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
+  // Position? _currentPosition;
+  bool _isLocationServiceEnabled = false;
+  StreamSubscription<Position>? _positionStreamSubscription;
 
   final Map<String, String> languageMap = {
-    'english': 'en',
-    'ingles': 'en',
-    'anglais': 'en',
-    'eenglis': 'en',
-    'spanish': 'es',
-    'español': 'es',
-    'espanol': 'es',
-    'espanish': 'es',
-    'hindi': 'hi',
-    'hindee': 'hi',
-    'telugu': 'te',
-    'telugoo': 'te',
-    'telgu': 'te',
-    'tamil': 'ta',
-    'thamil': 'ta',
-    'tameel': 'ta',
-    'kannada': 'kn',
-    'kanada': 'kn',
-    'kanadda': 'kn',
-    'malayalam': 'ml',
-    'malayalum': 'ml',
-    'maliyalam': 'ml',
-    'nepali': 'ne',
-    'nepaalee': 'ne',
-    'sinhala': 'si',
-    'sinhalese': 'si',
-    'bengali': 'bn',
-    'bangla': 'bn',
-    'bengalee': 'bn',
-    'gujarati': 'gu',
-    'gujrati': 'gu',
-    'gujerati': 'gu',
-    'marathi': 'mr',
-    'marathee': 'mr',
-    'oriya': 'or',
-    'odia': 'or',
-    'urdu': 'ur',
-    'oordu': 'ur',
-    'punjabi': 'pa',
-    'panjabi': 'pa',
-    'punjabee': 'pa',
-    'assamese': 'as',
-    'asamiya': 'as',
-    'assamesse': 'as',
+    'Hindi': 'hi',
+    'Bengali': 'bn',
+    'Tamil': 'ta',
+    'Telugu': 'te',
+    'Kannada': 'kn',
+    'Malayalam': 'ml',
+    'Punjabi': 'pa',
+    'Gujarati': 'gu',
+    'Odia': 'or',
+    'Urdu': 'ur',
+    'English': 'en',
+    'Spanish': 'es',
+    'Assamese': 'as',
+    'Marathi': 'mr',
+    'Nepali': 'ne',
+    'Sinhala': 'si',
   };
 
   void _requestPermission() async {
@@ -187,11 +164,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // }
 
   Future<Position> _determinePosition() async {
-    bool serviceEnabled;
     LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
+    _isLocationServiceEnabled =
+        await _geolocatorPlatform.isLocationServiceEnabled();
+    if (!_isLocationServiceEnabled) {
+      _showLocationEnableDialog();
       return Future.error('Location services are disabled. Please enable it.');
     }
 
@@ -205,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (permission == LocationPermission.deniedForever) {
+      _showLocationPermissionDeniedForever();
       return Future.error(
           'Location permissions are permanently denied, we cannot request permissions. Please enable it.');
     }
@@ -214,8 +193,120 @@ class _HomeScreenState extends State<HomeScreen> {
       distanceFilter: 100,
     );
 
-    return await Geolocator.getCurrentPosition(
-        locationSettings: locationSettings);
+    final position =
+        await Geolocator.getCurrentPosition(locationSettings: locationSettings);
+    _startLocationUpdates();
+    return position;
+  }
+
+  Future<void> _getLocationUpdates() async {
+    try {
+      _positionStreamSubscription = _geolocatorPlatform
+          .getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 10,
+        ),
+      )
+          .listen((Position position) {
+        setState(() {
+          // _currentPosition = position;
+          _updateLocationInPrefs(position);
+          log("New location: ${position.latitude}, ${position.longitude}");
+        });
+      });
+    } catch (e) {
+      log('Error getting location updates: $e');
+    }
+  }
+
+  void _updateLocationInPrefs(Position position) async {
+    try {
+      final prefs = SharedPreferencesHelper();
+      prefs.setString("latitude", position.latitude.toString());
+      prefs.setString("longitude", position.longitude.toString());
+
+      // Get the Placemark
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      Placemark place = placemarks[0];
+      log("Place: ${place.name}");
+
+      // Store the Placemark as JSON
+      prefs.setString("location", jsonEncode(place.toJson()));
+    } catch (e) {
+      log('Error updating location in prefs: $e');
+    }
+  }
+
+  Future<void> _showLocationEnableDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Location Services Required'),
+          content: const Text(
+              'Please enable location services for this app to work.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showLocationPermissionDeniedForever() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Location Permissions Denied Forever'),
+          content: const Text(
+              'Please go to settings and grant location permissions to this app.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _startLocationUpdates() async {
+    try {
+      final LocationPermission permissionStatus =
+          await _geolocatorPlatform.checkPermission();
+      if (permissionStatus == LocationPermission.whileInUse ||
+          permissionStatus == LocationPermission.always) {
+        _getLocationUpdates(); // Start location updates after permission granted
+      } else if (permissionStatus == LocationPermission.denied) {
+        _requestLocationPermission();
+      } else if (permissionStatus == LocationPermission.deniedForever) {
+        _showLocationPermissionDeniedForever();
+      }
+    } catch (e) {
+      log('Error getting location: $e');
+    }
+  }
+
+  Future<void> _requestLocationPermission() async {
+    final LocationPermission permissionStatus =
+        await _geolocatorPlatform.requestPermission();
+    if (permissionStatus == LocationPermission.whileInUse ||
+        permissionStatus == LocationPermission.always) {
+      _getLocationUpdates(); // Start location updates after permission granted
+    } else if (permissionStatus == LocationPermission.denied) {
+      _showLocationPermissionDeniedForever();
+    }
   }
 
   void logLocation() async {
@@ -255,6 +346,13 @@ class _HomeScreenState extends State<HomeScreen> {
     App.setLocale(context, locale);
   }
 
+  void _stopListening() {
+    setState(() {
+      _isListening = false;
+      _text = '';
+    });
+  }
+
   void _navigate(String command) async {
     if (command.isEmpty) {
       return;
@@ -268,6 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     final category = res["category"];
+    log(category);
     if (!mounted) return;
     if (category == "home") {
       setState(() {
@@ -339,14 +438,15 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       await _speechToText.stop();
     }
+    _stopListening();
   }
 
   @override
   void initState() {
     // logUserDetails();
-    _requestPermission();
-    logLocation();
     super.initState();
+    logLocation();
+    _requestPermission();
     _speechToText = SpeechToText();
   }
 
@@ -390,7 +490,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _text = command;
     });
     log(command);
-
     try {
       final translation = await translator.translate(command, to: 'en');
       final translatedCommand = translation.text.toLowerCase();
@@ -398,18 +497,18 @@ class _HomeScreenState extends State<HomeScreen> {
       final detectedLanguage = _detectLanguage(translatedCommand);
       if (detectedLanguage != null) {
         _changeLanguage(detectedLanguage);
+        _stopListening();
         return;
       }
     } catch (e) {
       log('Translation error: $e');
-      // Proceed with original text if translation fails
     }
     if (command.contains('stop')) {
       setState(() {
         _isListening = false;
         _text = '';
       });
-      _speechToText.stop();
+      await _speechToText.stop();
     } else {
       _navigate(command);
     }
@@ -417,24 +516,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String? _detectLanguage(String command) {
     for (var entry in languageMap.entries) {
-      // Check if the command contains the language name (case insensitive)
-      if (_phoneticMatch(command, entry.key)) {
+      if (command.contains(entry.key.toLowerCase())) {
         return entry.value;
       }
     }
     return null;
-  }
-
-  bool _phoneticMatch(String text, String target) {
-    // Simple phonetic matching algorithm
-    String simplify(String s) {
-      return s
-          .toLowerCase()
-          .replaceAll(RegExp(r'[aeiou]'), '') // Remove vowels
-          .replaceAll(RegExp(r'(.)\1+'), r'$1'); // Remove repeated consonants
-    }
-
-    return simplify(text).contains(simplify(target));
   }
 
   void _onPressed(int index) {
@@ -446,6 +532,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _speechToText.cancel();
+    _positionStreamSubscription?.cancel(); // Cancel the stream subscription
     super.dispose();
   }
 

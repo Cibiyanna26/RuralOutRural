@@ -118,9 +118,13 @@ class ToastHelper {
             const SizedBox(
               width: 12.0,
             ),
-            Text(
-              message,
-              style: const TextStyle(color: kWhiteColor),
+            Expanded(
+              child: Text(
+                message,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                style: const TextStyle(color: kWhiteColor),
+              ),
             ),
           ],
         ),
