@@ -27,8 +27,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _location;
   late Future<List<Doctor>> futureDoctors;
   late Future<List<Hospital>> futureHospitals;
-  late List<Doctor>? _localDoctors;
-  late List<Hospital>? _localHospitals;
+  // late List<Doctor>? _localDoctors;
+  // late List<Hospital>? _localHospitals;
 
   @override
   void initState() {
@@ -60,6 +60,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final hospitals = await api.getNearbyHospitals();
     final localDoctors = await storage.getString("doctors");
     final localHospitals = await storage.getString("hospitals");
+    print("Local doctors: $localDoctors");
+    print("Local hospitals: $localHospitals");
 
     if (doctors.isNotEmpty) {
       log("Doctors: $doctors");
@@ -76,16 +78,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _name = name;
       _gender = gender;
-      _localDoctors = localDoctors != null
-          ? (jsonDecode(localDoctors) as List)
-              .map((doctor) => Doctor.fromJson(doctor))
-              .toList()
-          : null;
-      _localHospitals = localHospitals != null
-          ? (jsonDecode(localHospitals) as List)
-              .map((hospital) => Hospital.fromJson(hospital))
-              .toList()
-          : null;
     });
     final location = await storage.getString('location');
     if (location != null) {
@@ -291,13 +283,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _localHospitals != null
-                        ? Column(
+                    FutureBuilder<List<Hospital>>(
+                      future: futureHospitals,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          final hospitals = snapshot.data;
+                          return Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                getTranslated(context, "local_hospitals"),
+                                getTranslated(context, "nearby_hospitals"),
                                 style: const TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
@@ -306,10 +302,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 height: 213,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: _localHospitals!.length,
+                                  itemCount: hospitals!.length,
                                   itemBuilder: (context, index) {
                                     return HospitalCard(
-                                        hospital: _localHospitals![index]);
+                                        hospital: hospitals[index]);
                                   },
                                 ),
                               ),
@@ -324,65 +320,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               const SizedBox(height: 10),
                             ],
-                          )
-                        : FutureBuilder<List<Hospital>>(
-                            future: futureHospitals,
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                final hospitals = snapshot.data;
-                                return Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      getTranslated(
-                                          context, "nearby_hospitals"),
-                                      style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    SizedBox(
-                                      height: 213,
-                                      child: ListView.builder(
-                                        scrollDirection: Axis.horizontal,
-                                        itemCount: hospitals!.length,
-                                        itemBuilder: (context, index) {
-                                          return HospitalCard(
-                                              hospital: hospitals[index]);
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    ElevatedButton(
-                                      onPressed: _searchHospitals,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: kWhiteColor,
-                                      ),
-                                      child: Text(getTranslated(
-                                          context, "view_more_hospitals")),
-                                    ),
-                                    const SizedBox(height: 10),
-                                  ],
-                                );
-                              } else if (snapshot.hasError) {
-                                log('${snapshot.error}');
-                                return const SizedBox.shrink();
-                              }
+                          );
+                        } else if (snapshot.hasError) {
+                          log('${snapshot.error}');
+                          return const SizedBox.shrink();
+                        }
 
-                              return const SizedBox.shrink();
-                              // return const Center(child: CircularProgressIndicator());
-                            },
-                          ),
+                        return const SizedBox.shrink();
+                        // return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
                     Text(
                       getTranslated(context, "nearby_doctors"),
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    _localDoctors != null
-                        ? Column(
-                            children: _localDoctors!.map((doctor) {
+                    FutureBuilder<List<Doctor>>(
+                      future: futureDoctors,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          final doctors = snapshot.data;
+                          return Column(
+                            children: doctors!.map((doctor) {
                               return ListTile(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -404,47 +364,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 },
                               );
                             }).toList(),
-                          )
-                        : FutureBuilder<List<Doctor>>(
-                            future: futureDoctors,
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                final doctors = snapshot.data;
-                                return Column(
-                                  children: doctors!.map((doctor) {
-                                    return ListTile(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      hoverColor:
-                                          kPrimaryColor.withOpacity(0.1),
-                                      splashColor:
-                                          kPrimaryColor.withOpacity(0.1),
-                                      focusColor:
-                                          kPrimaryColor.withOpacity(0.1),
-                                      leading: const CircleAvatar(
-                                        backgroundImage: AssetImage(
-                                            'assets/images/default-doctor.png'),
-                                        backgroundColor: Colors.white,
-                                      ),
-                                      title: Text(doctor.name!),
-                                      subtitle: Text(doctor.specialization!),
-                                      trailing: const Icon(Icons.arrow_forward),
-                                      onTap: () {
-                                        // Navigate to doctor details or booking
-                                        context.push("/doctor", extra: doctor);
-                                      },
-                                    );
-                                  }).toList(),
-                                );
-                              } else if (snapshot.hasError) {
-                                return Text('${snapshot.error}');
-                              }
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('${snapshot.error}');
+                        }
 
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            },
-                          ),
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: _search,

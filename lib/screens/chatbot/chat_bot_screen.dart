@@ -125,7 +125,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
     _initSpeech();
   }
 
-  void _initQuery() {
+  void _initQuery() async {
     if (widget.query == null) return;
     _messageController.text = widget.query!;
   }
@@ -158,6 +158,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
   }
 
   void _sendAudio() async {
+    context.pop();
     final chatMessage = ChatMessage(
       text: _text,
       isSender: true,
@@ -191,7 +192,6 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
   }
 
   void _audioConfirmationDialog() {
-    _stopListening();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -211,7 +211,6 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
         ],
       ),
     );
-    context.pop();
   }
 
   void _stopListening() async {
@@ -364,6 +363,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                         child: GestureDetector(
                           onLongPress: _recordAudio,
                           onLongPressEnd: (details) {
+                            _stopListening();
                             _audioConfirmationDialog();
                           },
                           child: IconButton(
@@ -371,7 +371,9 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                               focusColor: kPrimaryColor.withOpacity(0.3),
                               hoverColor: kPrimaryColor.withOpacity(0.3),
                               highlightColor: kPrimaryColor.withOpacity(0.3),
-                              onPressed: () {},
+                              onPressed: () {
+                                _messageFocusNode.unfocus();
+                              },
                               icon: const Icon(
                                 Iconsax.microphone_2,
                                 color: kWhiteColor,

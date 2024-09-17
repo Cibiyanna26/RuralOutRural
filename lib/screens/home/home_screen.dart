@@ -25,6 +25,13 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:translator/translator.dart';
 
+const List<Widget> _screens = <Widget>[
+  DashboardScreen(),
+  ChatBotScreen(),
+  ScannerScreen(),
+  CommunityScreen()
+];
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -47,7 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLocationServiceEnabled = false;
   StreamSubscription<Position>? _positionStreamSubscription;
   String? _query;
-  late List<Widget> _screens;
 
   @override
   void initState() {
@@ -56,12 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
     logLocation();
     _requestPermission();
     _speechToText = SpeechToText();
-    _screens = <Widget>[
-      const DashboardScreen(),
-      ChatBotScreen(query: _query),
-      const ScannerScreen(),
-      const CommunityScreen()
-    ];
   }
 
   final Map<String, String> languageMap = {
@@ -456,9 +456,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (newQuery == null) {
       return;
     }
-    if (!mounted) return;
-    setState(() {
-      _query = newQuery.isEmpty ? null : newQuery;
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _query = newQuery;
+      });
     });
   }
 
@@ -555,7 +556,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          _screens[_currentIndex],
+          _currentIndex == 1
+              ? ChatBotScreen(query: _query)
+              : _screens[_currentIndex],
           if (_text.isNotEmpty)
             Positioned(
               bottom: 45,
