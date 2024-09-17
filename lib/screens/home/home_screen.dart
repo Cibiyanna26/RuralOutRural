@@ -25,13 +25,6 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:translator/translator.dart';
 
-const List<Widget> _screens = <Widget>[
-  DashboardScreen(),
-  ChatBotScreen(),
-  ScannerScreen(),
-  CommunityScreen()
-];
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -53,6 +46,23 @@ class _HomeScreenState extends State<HomeScreen> {
   // Position? _currentPosition;
   bool _isLocationServiceEnabled = false;
   StreamSubscription<Position>? _positionStreamSubscription;
+  String? _query;
+  late List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    // logUserDetails();
+    logLocation();
+    _requestPermission();
+    _speechToText = SpeechToText();
+    _screens = <Widget>[
+      const DashboardScreen(),
+      ChatBotScreen(query: _query),
+      const ScannerScreen(),
+      const CommunityScreen()
+    ];
+  }
 
   final Map<String, String> languageMap = {
     'Hindi': 'hi',
@@ -373,6 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _currentIndex = 0; // Navigate to DashboardScreen
       });
     } else if (category == "medibot") {
+      setQuery(command);
       setState(() {
         _currentIndex = 1; // Navigate to ChatBotScreen
       });
@@ -441,13 +452,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _stopListening();
   }
 
-  @override
-  void initState() {
-    // logUserDetails();
-    super.initState();
-    logLocation();
-    _requestPermission();
-    _speechToText = SpeechToText();
+  void setQuery(String? newQuery) {
+    if (newQuery == null) {
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _query = newQuery.isEmpty ? null : newQuery;
+    });
   }
 
   @override

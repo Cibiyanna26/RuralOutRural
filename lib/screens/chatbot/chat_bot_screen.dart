@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -13,9 +14,12 @@ import 'package:reach_out_rural/repository/api/api_repository.dart';
 import 'package:reach_out_rural/screens/chatbot/message.dart';
 import 'package:reach_out_rural/screens/chatbot/messasge_attachment_modal.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
+import 'package:reach_out_rural/utils/toast.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 class ChatBotScreen extends StatefulWidget {
-  const ChatBotScreen({super.key});
+  const ChatBotScreen({super.key, this.query});
+  final String? query;
 
   @override
   State<ChatBotScreen> createState() => _ChatBotScreenState();
@@ -28,6 +32,10 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
   int _currentMessageIndex = 0;
   final ScrollController _scrollController = ScrollController();
   final FocusNode _messageFocusNode = FocusNode();
+  bool isRecording = false;
+  final SpeechToText speech = SpeechToText();
+  String _text = "";
+  final toaster = ToastHelper();
 
   void _scrollToBottom() {
     _scrollController.animateTo(
@@ -101,6 +109,118 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
     });
   }
 
+  Future<void> _initSpeech() async {
+    bool available = await speech.initialize();
+    if (available) {
+      setState(() {
+        isRecording = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initQuery();
+    _initSpeech();
+  }
+
+  void _initQuery() {
+    if (widget.query == null) return;
+    _messageController.text = widget.query!;
+  }
+
+  void _recordAudio() async {
+    final locale = await getLocale();
+    if (!isRecording) {
+      bool available = await speech.initialize();
+      if (available) {
+        setState(() {
+          isRecording = true;
+        });
+        await speech.listen(
+          onResult: (result) {
+            // _messageController.text = result.recognizedWords;
+            _text = result.recognizedWords;
+          },
+          pauseFor: const Duration(seconds: 5),
+          listenFor: const Duration(seconds: 10),
+          listenOptions: SpeechListenOptions(
+            enableHapticFeedback: true,
+          ),
+          localeId: locale
+              .languageCode, // Set your locale based on the user's preferred language
+        );
+      }
+    } else {
+      _stopListening();
+    }
+  }
+
+  void _sendAudio() async {
+    final chatMessage = ChatMessage(
+      text: _text,
+      isSender: true,
+      messageType: ChatMessageType.audio,
+      messageStatus: MessageStatus.viewed,
+    );
+    setState(() {
+      chatMessages.add(chatMessage);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+    final locale = await getLocale();
+    Map<String, dynamic> data = {
+      "text": _text,
+      "lang": locale.languageCode,
+    };
+    final res = await api.chatbot(data);
+    final botChatReply = ChatMessage(
+      text: res['text_response'],
+      isSender: false,
+      messageType: ChatMessageType.text,
+      messageStatus: MessageStatus.viewed,
+    );
+    setState(() {
+      chatMessages.add(botChatReply);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+  }
+
+  void _audioConfirmationDialog() {
+    _stopListening();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Audio Confirmation"),
+        content: const Text("Are you sure you want to send this audio?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              context.pop();
+            },
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: _sendAudio,
+            child: const Text("Send"),
+          ),
+        ],
+      ),
+    );
+    context.pop();
+  }
+
+  void _stopListening() async {
+    setState(() {
+      isRecording = false;
+    });
+    await speech.stop();
+  }
+
   void _showAttachmentModal() async {
     final result = await showModalBottomSheet(
         backgroundColor: Colors.transparent,
@@ -137,6 +257,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     _messageFocusNode.dispose();
+    speech.stop();
     super.dispose();
   }
 
@@ -234,16 +355,29 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                       hintText: 'Type your message...',
                       hintStyle:
                           const TextStyle(fontSize: 16, color: kGreyColor),
-                      prefixIcon: IconButton(
-                          splashColor: kPrimaryColor.withOpacity(0.3),
-                          focusColor: kPrimaryColor.withOpacity(0.3),
-                          hoverColor: kPrimaryColor.withOpacity(0.3),
-                          highlightColor: kPrimaryColor.withOpacity(0.3),
-                          onPressed: () {},
-                          icon: const Icon(
-                            Iconsax.microphone_2,
-                            color: kBlackColor,
-                          )),
+                      prefixIcon: AvatarGlow(
+                        animate: isRecording,
+                        glowColor: kPrimaryColor,
+                        curve: Curves.easeInOut,
+                        duration: const Duration(milliseconds: 1000),
+                        repeat: true,
+                        child: GestureDetector(
+                          onLongPress: _recordAudio,
+                          onLongPressEnd: (details) {
+                            _audioConfirmationDialog();
+                          },
+                          child: IconButton(
+                              splashColor: kPrimaryColor.withOpacity(0.3),
+                              focusColor: kPrimaryColor.withOpacity(0.3),
+                              hoverColor: kPrimaryColor.withOpacity(0.3),
+                              highlightColor: kPrimaryColor.withOpacity(0.3),
+                              onPressed: () {},
+                              icon: const Icon(
+                                Iconsax.microphone_2,
+                                color: kWhiteColor,
+                              )),
+                        ),
+                      ),
                       suffixIcon: IconButton(
                           onPressed: _showAttachmentModal,
                           splashColor: kPrimaryColor.withOpacity(0.3),

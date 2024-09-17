@@ -121,8 +121,9 @@ class ToastHelper {
             Expanded(
               child: Text(
                 message,
+                textAlign:
+                    message.length < 29 ? TextAlign.center : TextAlign.start,
                 overflow: TextOverflow.ellipsis,
-                maxLines: 2,
                 style: const TextStyle(color: kWhiteColor),
               ),
             ),
