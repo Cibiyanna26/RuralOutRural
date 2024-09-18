@@ -22,6 +22,9 @@ class CommunityItem extends StatelessWidget {
         if (nearbyDoctors0.isNotEmpty) {
           final nearbyDoctors = nearbyDoctors0
               .map((doctor) => Doctor.fromJson(doctor as Map<String, dynamic>))
+              .where((doctor) =>
+                  doctor.specialization!.toLowerCase() ==
+                  community.specialization.toLowerCase())
               .toList();
           final extra = {"community": community, "doctors": nearbyDoctors};
           if (!context.mounted) return;
