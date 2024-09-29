@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:reach_out_rural/models/patient.dart';
 import 'package:reach_out_rural/repository/user/user_patient_repository.dart';
 
@@ -24,9 +24,8 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
+    final picker = await FilePicker.platform.pickFiles(type: FileType.image);
+    final pickedFile = picker?.files.first;
     if (pickedFile != null) {
       emit(state.copyWith(avatarPath: pickedFile.path));
     }

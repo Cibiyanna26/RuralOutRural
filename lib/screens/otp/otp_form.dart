@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import 'package:reach_out_rural/constants/constants.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
-import 'package:reach_out_rural/widgets/default_button.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:reach_out_rural/widgets/default_button_loader.dart';
 
 class OtpForm extends StatelessWidget {
   const OtpForm({super.key, required this.isLogin});
@@ -64,7 +64,8 @@ class OtpForm extends StatelessWidget {
           ],
         ),
         SizedBox(height: SizeConfig.getProportionateScreenHeight(45)),
-        DefaultButton(
+        DefaultButtonLoader(
+          isLoading: false,
           text: AppLocalizations.of(context)!.continue_text,
           width: SizeConfig.getProportionateScreenWidth(350),
           height: SizeConfig.getProportionateScreenHeight(60),
