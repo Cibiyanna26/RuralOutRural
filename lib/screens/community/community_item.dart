@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reach_out_rural/constants/constants.dart';
 import 'package:reach_out_rural/models/community.dart';
-import 'package:reach_out_rural/models/doctor.dart';
-import 'package:reach_out_rural/repository/storage/storage_repository.dart';
+import '../../../repository/storage/storage_repository.dart';
 
 class CommunityItem extends StatelessWidget {
   final Community community;
@@ -15,22 +13,16 @@ class CommunityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void navigate() async {
-      final SharedPreferencesHelper prefs = SharedPreferencesHelper();
-      final doctors = await prefs.getString("doctors");
-      if (doctors != null) {
-        final List<dynamic> nearbyDoctors0 = jsonDecode(doctors);
-        if (nearbyDoctors0.isNotEmpty) {
-          final nearbyDoctors = nearbyDoctors0
-              .map((doctor) => Doctor.fromJson(doctor as Map<String, dynamic>))
-              .where((doctor) =>
-                  doctor.specialization!.toLowerCase() ==
-                  community.specialization.toLowerCase())
-              .toList();
-          final extra = {"community": community, "doctors": nearbyDoctors};
-          if (!context.mounted) return;
-          context.push("/specialized-community", extra: extra);
-        }
-      }
+      final doctors = await context.read<StorageRepository>().getDoctors();
+
+      final nearbyDoctors = doctors
+          .where((doctor) =>
+              doctor.specialization?.toLowerCase() ==
+              community.specialization.toLowerCase())
+          .toList();
+      final extra = {"community": community, "doctors": nearbyDoctors};
+      if (!context.mounted) return;
+      context.push("/specialized-community", extra: extra);
     }
 
     return Card(

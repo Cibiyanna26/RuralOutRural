@@ -27,8 +27,8 @@ class SpecializedCommunity extends StatelessWidget {
               backgroundImage: AssetImage('assets/images/default-doctor.png'),
               backgroundColor: Colors.white,
             ),
-            title: Text(doctor.name!),
-            subtitle: Text(doctor.specialization!),
+            title: Text(doctor.name),
+            subtitle: Text(doctor.specialization ?? 'General'),
             trailing: ElevatedButton(
               onPressed: () {
                 // Implement your "Book Appointment" action here

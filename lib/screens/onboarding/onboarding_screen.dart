@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reach_out_rural/constants/constants.dart';
-import 'package:reach_out_rural/localization/language_constants.dart';
+import 'package:reach_out_rural/repository/storage/storage_repository.dart';
 import 'package:reach_out_rural/screens/onboarding/onboarding_content.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
 import 'package:reach_out_rural/widgets/default_button.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});
@@ -33,13 +35,15 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     setState(() => _currentPage = index);
   }
 
-  void _onButtonPressed() {
+  void _onButtonPressed() async {
     if (_currentPage < onBoardingScreens.length - 1) {
       _pageController.nextPage(
         duration: kAnimationDuration,
         curve: Curves.ease,
       );
     } else {
+      await context.read<StorageRepository>().setUserOnboarding(true);
+      if (!mounted) return;
       context.go('/login');
     }
   }
@@ -110,8 +114,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
       height: SizeConfig.getProportionateScreenHeight(56),
       fontSize: SizeConfig.getProportionateTextSize(18),
       text: _currentPage == onBoardingScreens.length - 1
-          ? getTranslated(context, 'get_started')
-          : getTranslated(context, 'continue'),
+          ? AppLocalizations.of(context)!.get_started
+          : AppLocalizations.of(context)!.continue_text,
       press: _onButtonPressed,
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reach_out_rural/constants/constants.dart';
-import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/models/hospital.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SearchHospitalsScreen extends StatefulWidget {
   const SearchHospitalsScreen({super.key, required this.hospitals});
@@ -35,7 +35,7 @@ class _SearchHospitalsScreenState extends State<SearchHospitalsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          getTranslated(context, "search_nearby_hospitals"),
+          AppLocalizations.of(context)!.search_nearby_hospitals,
         ),
       ),
       body: Padding(
@@ -51,7 +51,7 @@ class _SearchHospitalsScreenState extends State<SearchHospitalsScreen> {
                 decoration: InputDecoration(
                   labelStyle: const TextStyle(color: kGreyColor),
                   labelText:
-                      getTranslated(context, "search_for_nearby_hospitals"),
+                      AppLocalizations.of(context)!.search_for_nearby_hospitals,
                   border: InputBorder.none,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

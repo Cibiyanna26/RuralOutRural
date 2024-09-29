@@ -1,9 +1,87 @@
-import 'dart:developer';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+
+// class ScannerScreen extends StatelessWidget {
+//   const ScannerScreen({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     void showScanResultDialog(String result) {
+//       showDialog(
+//         context: context,
+//         builder: (context) => AlertDialog(
+//           title: const Text("Scan Result"),
+//           content: Text(result),
+//           actions: [
+//             TextButton(
+//               onPressed: () => context.pop(),
+//               child: const Text("OK"),
+//             ),
+//           ],
+//         ),
+//       );
+//     }
+
+//     final toaster = ToastHelper(context);
+
+//     return BlocProvider(
+//       create: (context) => ScannerBloc(apiService: context.read<ApiService>())
+//         ..add(CameraInitializedEvent()),
+//       child: BlocConsumer<ScannerBloc, ScannerState>(
+//           listener: (context, state) async {
+//         if (state is ScannerPictureTaken) {
+//           final res =
+//               await context.push('/analysis', extra: state.imagePath) as String;
+//           showScanResultDialog(res);
+//         } else if (state is ScannerError) {
+//           toaster.showErrorToast(state.message);
+//         }
+//       }, builder: (context, state) {
+//         if (state is ScannerReady) {
+//           return Scaffold(
+//             body: SizedBox(
+//                 width: double.infinity,
+//                 height: double.infinity,
+//                 child: AspectRatio(
+//                   aspectRatio: 9.0 / 16.0,
+//                   child: CameraPreview(state.controller),
+//                 )),
+//             floatingActionButton: Column(
+//               mainAxisAlignment: MainAxisAlignment.end,
+//               children: [
+//                 FloatingActionButton(
+//                   heroTag: 'toggleFlash',
+//                   onPressed: () =>
+//                       context.read<ScannerBloc>().add(ToggleFlashEvent()),
+//                   child: Icon(state.flashMode == FlashMode.off
+//                       ? Iconsax.flash_slash
+//                       : Iconsax.flash_1),
+//                 ),
+//                 const SizedBox(height: 15),
+//                 FloatingActionButton(
+//                   heroTag: 'scanSkin',
+//                   onPressed: () {
+//                     context.read<ScannerBloc>().add(TakePictureEvent());
+//                   },
+//                   child: const Icon(Iconsax.camera),
+//                 ),
+//               ],
+//             ),
+//           );
+//         } else if (state is ScannerError) {
+//           return Scaffold(body: Center(child: Text('Error: ${state.message}')));
+//         } else {
+//           return const Scaffold(
+//               body: Center(child: CircularProgressIndicator()));
+//         }
+//       }),
+//     );
+//   }
+// }
+
+import 'dart:developer';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});

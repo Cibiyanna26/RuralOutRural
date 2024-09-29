@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:reach_out_rural/constants/constants.dart';
-import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/screens/otp/otp_form.dart';
 import 'package:reach_out_rural/utils/size_config.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OtpScreen extends StatelessWidget {
-  const OtpScreen({super.key, required this.phoneNumber});
+  const OtpScreen(
+      {super.key, required this.phoneNumber, required this.isLogin});
   final String phoneNumber;
+  final bool isLogin;
 
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Scaffold(
         appBar: AppBar(
-            title: Text(getTranslated(context, "otp_verification")),
+            title: Text(AppLocalizations.of(context)!.otp_verification),
             centerTitle: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             titleTextStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -32,7 +34,8 @@ class OtpScreen extends StatelessWidget {
                         height: SizeConfig.getProportionateScreenHeight(60)),
                     Text.rich(
                       TextSpan(
-                        text: getTranslated(context, "otp_verification_desc"),
+                        text:
+                            AppLocalizations.of(context)!.otp_verification_desc,
                         children: [
                           TextSpan(
                             text: "+91$phoneNumber",
@@ -43,13 +46,13 @@ class OtpScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     buildTimer(context),
-                    const OtpForm(),
+                    OtpForm(isLogin: isLogin),
                     SizedBox(
                         height: SizeConfig.getProportionateScreenHeight(30)),
                     TextButton(
                       onPressed: () {},
                       child: Text(
-                        getTranslated(context, "resend_otp"),
+                        AppLocalizations.of(context)!.resend_otp,
                       ),
                     ),
                   ],
@@ -64,7 +67,7 @@ class OtpScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(getTranslated(context, "otp_expire")),
+        Text(AppLocalizations.of(context)!.otp_expire),
         TweenAnimationBuilder(
           tween: Tween(begin: 60.0, end: 00.0),
           duration: const Duration(seconds: 60),

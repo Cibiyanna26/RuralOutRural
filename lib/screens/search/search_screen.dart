@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reach_out_rural/constants/constants.dart';
-import 'package:reach_out_rural/localization/language_constants.dart';
 import 'package:reach_out_rural/models/doctor.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key, required this.doctors});
@@ -27,8 +27,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _filteredDoctors = widget.doctors
           .where((doctor) =>
-              (doctor.name?.toLowerCase().contains(query.toLowerCase()) ??
-                  false))
+              (doctor.name.toLowerCase().contains(query.toLowerCase())))
           .toList();
     });
   }
@@ -37,9 +36,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          getTranslated(context, 'search_doctors'),
-        ),
+        title: Text(AppLocalizations.of(context)!.search_doctors),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -52,7 +49,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  labelText: getTranslated(context, "search_for_doctors"),
+                  labelText: AppLocalizations.of(context)!.search_for_doctors,
                   labelStyle: const TextStyle(color: kGreyColor),
                   border: InputBorder.none,
                   contentPadding:
@@ -69,7 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 itemBuilder: (context, index) {
                   final doctor = _filteredDoctors[index];
                   return ListTile(
-                    title: Text(doctor.name ?? 'Unknown Doctor'),
+                    title: Text(doctor.name),
                     onTap: () {
                       // Handle doctor selection
                       // For example, navigate to a doctor detail page

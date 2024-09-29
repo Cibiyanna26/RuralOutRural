@@ -1,157 +1,29 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reach_out_rural/constants/constants.dart';
-import 'package:reach_out_rural/localization/language_constants.dart';
-import 'package:reach_out_rural/models/doctor.dart';
 import 'package:reach_out_rural/models/hospital.dart';
-import 'package:reach_out_rural/repository/api/api_repository.dart';
-import 'package:reach_out_rural/repository/storage/storage_repository.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:reach_out_rural/repository/auth/bloc/auth_bloc.dart';
+import 'package:reach_out_rural/repository/user/user_patient_repository.dart';
+import 'package:reach_out_rural/screens/dashboard/cubit/dashboard_cubit.dart';
+import 'package:reach_out_rural/screens/skeleton/skeleton_loader.dart';
+import '../../services/api/api_service.dart';
+import '../../../repository/storage/storage_repository.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  final SharedPreferencesHelper prefs = SharedPreferencesHelper();
-  final api = ApiRepository();
-  String? _name;
-  String? _gender;
-  String? _location;
-  late Future<List<Doctor>> futureDoctors;
-  late Future<List<Hospital>> futureHospitals;
-  // late List<Doctor>? _localDoctors;
-  // late List<Hospital>? _localHospitals;
-
-  @override
-  void initState() {
-    _getDoctors();
-    _getHospitals();
-    _initProfile();
-    super.initState();
-  }
-
-  void _search() async {
-    final extra = await futureDoctors;
-    // log("Extra: $extra");
-    if (!mounted) return;
-    context.push("/search", extra: extra);
-  }
-
-  void _searchHospitals() async {
-    final extra = await futureHospitals;
-    // log("Extra: $extra");
-    if (!mounted) return;
-    context.push("/search-hospitals", extra: extra);
-  }
-
-  void _initProfile() async {
-    final SharedPreferencesHelper storage = SharedPreferencesHelper();
-    final name = await storage.getString('name');
-    final gender = await storage.getString("gender");
-    final doctors = await api.getDoctors();
-    final hospitals = await api.getNearbyHospitals();
-    final localDoctors = await storage.getString("doctors");
-    final localHospitals = await storage.getString("hospitals");
-    print("Local doctors: $localDoctors");
-    print("Local hospitals: $localHospitals");
-
-    if (doctors.isNotEmpty) {
-      log("Doctors: $doctors");
-      final jsonDoctors = doctors.map((doctor) => doctor.toJson()).toList();
-      await storage.setString("doctors", jsonEncode(jsonDoctors));
-    }
-    if (hospitals.isNotEmpty) {
-      log("Hospitals: $hospitals");
-      final jsonHospitals =
-          hospitals.map((hospital) => hospital.toJson()).toList();
-      await storage.setString("hospitals", jsonEncode(jsonHospitals));
-    }
-    if (!mounted) return;
-    setState(() {
-      _name = name;
-      _gender = gender;
-    });
-    final location = await storage.getString('location');
-    if (location != null) {
-      final List<Location> locations =
-          // ignore: body_might_complete_normally_catch_error
-          await locationFromAddress(location).catchError((e) {
-        log(e);
-      });
-      final position = locations[0];
-      final placeList =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
-      final place = placeList[0];
-      final shortenedAddress = _shortenAddress(
-        locality: place.locality,
-        administrativeArea: place.administrativeArea,
-        country: place.country,
-      );
-      // var address =
-      //     "${place.locality}, ${place.administrativeArea}, ${place.country}";
-      if (!mounted) return;
-      setState(() {
-        _location = shortenedAddress;
-      });
-    }
-  }
-
-  // @override
-  // void didChangeDependencies() {
-  //   _initProfile();
-  //   super.didChangeDependencies();
-  // }
-
-  String _shortenAddress({
-    String? locality,
-    String? administrativeArea,
-    String? country,
-  }) {
-    String shortenedAdministrativeArea = administrativeArea ?? '';
-    String shortenedCountry = country ?? '';
-
-    if (stateMap.containsKey(administrativeArea)) {
-      shortenedAdministrativeArea = stateMap[administrativeArea]!;
-    }
-
-    if (countryMap.containsKey(country)) {
-      shortenedCountry = countryMap[country]!;
-    }
-
-    return "${locality ?? ''}, $shortenedAdministrativeArea, $shortenedCountry";
-  }
-
-  void _getDoctors() async {
-    // Fetch nearby doctors
-    setState(() {
-      futureDoctors = api.getDoctors();
-    });
-  }
-
-  void _getHospitals() async {
-    // Fetch nearby hospitals
-    setState(() {
-      futureHospitals = api.getNearbyHospitals();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final asset = _gender == "Male"
+    final user = context.select((AuthBloc bloc) => bloc.state.userPatient);
+    final asset = user.gender.name.toLowerCase() == "male"
         ? "assets/images/male.png"
         : "assets/images/female.png";
     return Scaffold(
       appBar: AppBar(
         foregroundColor: kWhiteColor,
-        // title: const Text('Dashboard'),
         backgroundColor: kPrimaryColor,
         actions: [
           Padding(
@@ -165,7 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    _location ?? "New Delhi",
+                    user.location,
                     style: const TextStyle(fontSize: 16),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -189,12 +61,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: kWhiteColor,
-                    backgroundImage:
-                        AssetImage(asset), // Replace with actual image path
+                    backgroundImage: AssetImage(asset),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    _name ?? "User",
+                    user.name,
                     style: const TextStyle(color: kWhiteColor, fontSize: 20),
                   ),
                 ],
@@ -202,7 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               title: Text(
-                getTranslated(context, "profile"),
+                AppLocalizations.of(context)!.profile,
               ),
               leading: const Icon(Iconsax.user),
               onTap: () {
@@ -211,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               title: Text(
-                getTranslated(context, "prescriptions"),
+                AppLocalizations.of(context)!.prescriptions,
               ),
               leading: const Icon(Iconsax.document),
               onTap: () {
@@ -220,171 +91,188 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               title: Text(
-                getTranslated(context, "logout"),
+                AppLocalizations.of(context)!.logout,
               ),
               leading: const Icon(Iconsax.logout),
               onTap: () {
-                context.go("/login");
+                context.read<AuthBloc>().add(AuthenticationLogoutPressed());
+                context.replace('/login');
               },
             ),
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Search input below the top app bar
-              Container(
-                decoration: BoxDecoration(
-                    color: const Color(0xffEFEFEF),
-                    borderRadius: BorderRadius.circular(14)),
-                child: TextField(
-                  style: const TextStyle(color: kBlackColor),
-                  decoration: InputDecoration(
-                    hintStyle: const TextStyle(color: kGreyColor),
-                    hintText: getTranslated(context, "search_for_doctor"),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
-                    prefixIcon: const Icon(Icons.search,
-                        color:
-                            Colors.grey), // Search icon inside the input field
-                  ),
-                  onTap: _search,
-                ),
-              ),
-              const SizedBox(height: 16), // Space between search bar and cards
-              // Row with two cards
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: _buildCard(
-                      getTranslated(context, "book_appointment"),
-                      'assets/images/appointment_image.jpg', // Replace with your image asset path
-                      context,
-                    ),
-                  ),
-                  const SizedBox(width: 16), // Space between the two cards
-                  Expanded(
-                    child: _buildCard(
-                      getTranslated(context, "instant_vid_consultation"),
-                      'assets/images/video_consultation_image.jpg', // Replace with your image asset path
-                      context,
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    FutureBuilder<List<Hospital>>(
-                      future: futureHospitals,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          final hospitals = snapshot.data;
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
+      body: BlocProvider(
+        create: (context) => DashboardCubit(
+          apiService: context.read<ApiService>(),
+          storageRepository: context.read<StorageRepository>(),
+          userPatientRepository: context.read<UserPatientRepository>(),
+        )..loadDashboardData(),
+        child: BlocBuilder<DashboardCubit, DashboardState>(
+          builder: (context, state) {
+            if (state is DashboardLoading) {
+              return const DashboardShimmer();
+            } else if (state is DashboardLoaded) {
+              return RefreshIndicator(
+                onRefresh: () async =>
+                    await context.read<DashboardCubit>().loadDashboardData(),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Search input below the top app bar
+                        Container(
+                          decoration: BoxDecoration(
+                              color: const Color(0xffEFEFEF),
+                              borderRadius: BorderRadius.circular(14)),
+                          child: TextField(
+                            style: const TextStyle(color: kBlackColor),
+                            decoration: InputDecoration(
+                              hintStyle: const TextStyle(color: kGreyColor),
+                              hintText: AppLocalizations.of(context)!
+                                  .search_for_doctor,
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 14),
+                              prefixIcon: const Icon(Icons.search,
+                                  color: Colors
+                                      .grey), // Search icon inside the input field
+                            ),
+                            onTap: () {
+                              context.push("/search", extra: state.doctors);
+                            },
+                          ),
+                        ),
+                        const SizedBox(
+                            height: 16), // Space between search bar and cards
+                        // Row with two cards
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: _buildCard(
+                                AppLocalizations.of(context)!.book_appointment,
+                                'assets/images/appointment_image.jpg', // Replace with your image asset path
+                                context,
+                              ),
+                            ),
+                            const SizedBox(
+                                width: 16), // Space between the two cards
+                            Expanded(
+                              child: _buildCard(
+                                AppLocalizations.of(context)!
+                                    .instant_vid_consultation,
+                                'assets/images/video_consultation_image.jpg', // Replace with your image asset path
+                                context,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    AppLocalizations.of(context)!
+                                        .nearby_hospitals,
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    height: 213,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: state.hospitals.length,
+                                      itemBuilder: (context, index) {
+                                        return HospitalCard(
+                                            hospital: state.hospitals[index]);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      context.push("/search-hospitals",
+                                          extra: state.hospitals);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: kWhiteColor,
+                                    ),
+                                    child: Text(AppLocalizations.of(context)!
+                                        .view_more_hospitals),
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
+                              ),
                               Text(
-                                getTranslated(context, "nearby_hospitals"),
+                                AppLocalizations.of(context)!.nearby_doctors,
                                 style: const TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 10),
-                              SizedBox(
-                                height: 213,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: hospitals!.length,
-                                  itemBuilder: (context, index) {
-                                    return HospitalCard(
-                                        hospital: hospitals[index]);
-                                  },
-                                ),
-                              ),
+                              Column(children: [
+                                ListView.builder(
+                                  itemCount: state.doctors.length,
+                                  shrinkWrap: true,
+                                  itemBuilder: (context, i) => ListTile(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    hoverColor: kPrimaryColor.withOpacity(0.1),
+                                    splashColor: kPrimaryColor.withOpacity(0.1),
+                                    focusColor: kPrimaryColor.withOpacity(0.1),
+                                    leading: const CircleAvatar(
+                                      backgroundImage: AssetImage(
+                                          'assets/images/default-doctor.png'),
+                                      backgroundColor: Colors.white,
+                                    ),
+                                    title: Text(state.doctors[i].name),
+                                    subtitle: Text(
+                                        state.doctors[i].specialization ??
+                                            'General'),
+                                    trailing: const Icon(Icons.arrow_forward),
+                                    onTap: () {
+                                      // Navigate to doctor details or booking
+                                      context.push("/doctor",
+                                          extra: state.doctors[i]);
+                                    },
+                                  ),
+                                )
+                              ]),
                               const SizedBox(height: 10),
                               ElevatedButton(
-                                onPressed: _searchHospitals,
+                                onPressed: () {
+                                  context.push("/search-doctor",
+                                      extra: state.doctors);
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: kWhiteColor,
                                 ),
-                                child: Text(getTranslated(
-                                    context, "view_more_hospitals")),
+                                child: Text(AppLocalizations.of(context)!
+                                    .view_more_doctors),
                               ),
-                              const SizedBox(height: 10),
                             ],
-                          );
-                        } else if (snapshot.hasError) {
-                          log('${snapshot.error}');
-                          return const SizedBox.shrink();
-                        }
-
-                        return const SizedBox.shrink();
-                        // return const Center(child: CircularProgressIndicator());
-                      },
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      getTranslated(context, "nearby_doctors"),
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    FutureBuilder<List<Doctor>>(
-                      future: futureDoctors,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          final doctors = snapshot.data;
-                          return Column(
-                            children: doctors!.map((doctor) {
-                              return ListTile(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                hoverColor: kPrimaryColor.withOpacity(0.1),
-                                splashColor: kPrimaryColor.withOpacity(0.1),
-                                focusColor: kPrimaryColor.withOpacity(0.1),
-                                leading: const CircleAvatar(
-                                  backgroundImage: AssetImage(
-                                      'assets/images/default-doctor.png'),
-                                  backgroundColor: Colors.white,
-                                ),
-                                title: Text(doctor.name!),
-                                subtitle: Text(doctor.specialization!),
-                                trailing: const Icon(Icons.arrow_forward),
-                                onTap: () {
-                                  // Navigate to doctor details or booking
-                                  context.push("/doctor", extra: doctor);
-                                },
-                              );
-                            }).toList(),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Text('${snapshot.error}');
-                        }
-
-                        return const Center(child: CircularProgressIndicator());
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: _search,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kWhiteColor,
-                      ),
-                      child: Text(getTranslated(context, "view_more_doctors")),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              );
+            } else if (state is DashboardError) {
+              return Text('Error: ${state.message}');
+            }
+            return const SizedBox.shrink();
+          },
         ),
       ),
     );
@@ -434,7 +322,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: Text(getTranslated(context, "learn_more"),
+              child: Text(AppLocalizations.of(context)!.learn_more,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center),
             ),
@@ -487,7 +375,9 @@ class HospitalCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  hospital.speciality,
+                  hospital.speciality == "Unknown"
+                      ? "General"
+                      : hospital.speciality,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),

@@ -1,71 +1,29 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:reach_out_rural/utils/size_config.dart';
+import 'package:reach_out_rural/repository/storage/storage_repository.dart';
+import 'package:reach_out_rural/screens/splash/cubit/splash_cubit.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    // navigateTo();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
-    return const Scaffold(
-      // body: Center(
-      //   child: Text.rich(
-      //     TextSpan(
-      //       text: 'R',
-      //       style: TextStyle(
-      //           color: kPrimaryColor,
-      //           fontSize: SizeConfig.getProportionateTextSize(85),
-      //           fontWeight: FontWeight.bold),
-      //       children: [
-      //         TextSpan(
-      //           text: 'O',
-      //           style: TextStyle(
-      //             color: kWhiteColor,
-      //             fontSize: SizeConfig.getProportionateTextSize(55),
-      //             fontWeight: FontWeight.bold,
-      //           ),
-      //         ),
-      //         TextSpan(
-      //           text: 'R',
-      //           style: TextStyle(
-      //             color: kPrimaryColor,
-      //             fontSize: SizeConfig.getProportionateTextSize(85),
-      //             fontWeight: FontWeight.bold,
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //     textAlign: TextAlign.center,
-      //   ),
-      // ),
-      body: Center(child: AnimatedTextBuilder()),
+    return BlocProvider(
+      create: (context) => SplashCubit(
+        storageRepository: context.read<StorageRepository>(),
+      )..checkSplashSeen(),
+      child: BlocListener<SplashCubit, bool>(
+        listener: (context, hasSeenSplash) {
+          if (hasSeenSplash) {
+            context.go('/onboarding');
+          }
+        },
+        child: const Scaffold(
+          body: Center(child: AnimatedTextBuilder()),
+        ),
+      ),
     );
   }
 }
@@ -85,7 +43,7 @@ class AnimatedTextBuilder extends StatelessWidget {
         ),
       ],
       onFinished: () {
-        context.go('/onboarding');
+        context.read<SplashCubit>().markSplashAsSeen();
       },
       totalRepeatCount: 1,
       isRepeatingAnimation: false,
@@ -132,7 +90,10 @@ class CustomTypewriterAnimatedText extends AnimatedText {
           ),
           TextSpan(
             text: 'Out',
-            style: textStyle?.copyWith(color: Colors.white),
+            style: textStyle?.copyWith(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black),
           ),
           TextSpan(
             text: 'Rural',

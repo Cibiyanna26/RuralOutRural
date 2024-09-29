@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:reach_out_rural/models/patient.dart';
 
 const kWhiteColor = Color(0xFFFFFFFF);
 const kBlackColor = Color(0xFF000000);
@@ -27,6 +28,17 @@ const List<String> bloodGroupAssets = [
   'assets/icons/O+.svg',
   'assets/icons/O-.svg',
 ];
+
+const bloodGroupNames = {
+  0: {BloodGroup.A, BloodGroupType.positive},
+  1: {BloodGroup.A, BloodGroupType.negative},
+  2: {BloodGroup.B, BloodGroupType.positive},
+  3: {BloodGroup.B, BloodGroupType.negative},
+  4: {BloodGroup.AB, BloodGroupType.positive},
+  5: {BloodGroup.AB, BloodGroupType.negative},
+  6: {BloodGroup.O, BloodGroupType.positive},
+  7: {BloodGroup.O, BloodGroupType.negative},
+};
 
 const List<String> chatResponse = [
   "Based on the image, it appears you might have a wound. Here's what you can do to provide initial first aid:\n 1) Clean the wound: Gently wash the area with soap and cool running water to remove dirt and debris.\n"
@@ -65,6 +77,24 @@ const languageList = [
   "si",
 ];
 
+final Map<String, String> languageMap = {
+  'Hindi': 'hi',
+  'Bengali': 'bn',
+  'Tamil': 'ta',
+  'Telugu': 'te',
+  'Kannada': 'kn',
+  'Malayalam': 'ml',
+  'Punjabi': 'pa',
+  'Gujarati': 'gu',
+  'Odia': 'or',
+  'Urdu': 'ur',
+  'English': 'en',
+  'Spanish': 'es',
+  'Assamese': 'as',
+  'Marathi': 'mr',
+  'Nepali': 'ne',
+  'Sinhala': 'si',
+};
 
 const stateMap = {
   "Andhra Pradesh": "AP",
@@ -300,4 +330,113 @@ const countryMap = {
   "Zambia": "ZM",
   "Zimbabwe": "ZW"
 };
+const String english = 'en';
+const String spanish = 'es';
+const String hindi = 'hi';
+const String bengali = 'bn';
+const String telugu = 'te';
+const String tamil = 'ta';
+const String urdu = 'ur';
+const String gujarati = 'gu';
+const String kannada = 'kn';
+const String oriya = 'or';
+const String malayalam = 'ml';
+const String punjabi = 'pa';
+const String assamese = 'as';
+const String marathi = 'mr';
+const String nepali = 'ne';
+const String sinhala = 'si';
 
+Locale getLocaleFromCode(String languageCode) {
+  switch (languageCode) {
+    case english:
+      return const Locale(english, 'US');
+    case spanish:
+      return const Locale(spanish, 'ES');
+    case hindi:
+      return const Locale(hindi, 'IN');
+    case bengali:
+      return const Locale(bengali, 'IN');
+    case telugu:
+      return const Locale(telugu, 'IN');
+    case tamil:
+      return const Locale(tamil, 'IN');
+    case urdu:
+      return const Locale(urdu, 'IN');
+    case gujarati:
+      return const Locale(gujarati, 'IN');
+    case kannada:
+      return const Locale(kannada, 'IN');
+    case oriya:
+      return const Locale(oriya, 'IN');
+    case malayalam:
+      return const Locale(malayalam, 'IN');
+    case punjabi:
+      return const Locale(punjabi, 'IN');
+    case assamese:
+      return const Locale(assamese, 'IN');
+    case marathi:
+      return const Locale(marathi, 'IN');
+    case nepali:
+      return const Locale(nepali, 'IN');
+    case sinhala:
+      return const Locale(sinhala, 'IN');
+    default:
+      return const Locale(english, 'US');
+  }
+}
+
+String getLanguageCode(String language) {
+  switch (language) {
+    case 'English':
+      return english;
+    case 'Spanish':
+      return spanish;
+    case 'Hindi':
+      return hindi;
+    case 'Bengali':
+      return bengali;
+    case 'Telugu':
+      return telugu;
+    case 'Tamil':
+      return tamil;
+    case 'Urdu':
+      return urdu;
+    case 'Gujarati':
+      return gujarati;
+    case 'Kannada':
+      return kannada;
+    case 'Oriya':
+      return oriya;
+    case 'Malayalam':
+      return malayalam;
+    case 'Punjabi':
+      return punjabi;
+    case 'Assamese':
+      return assamese;
+    case 'Marathi':
+      return marathi;
+    case 'Nepali':
+      return nepali;
+    case 'Sinhala':
+      return sinhala;
+    default:
+      return english;
+  }
+}
+
+const shimmerGradient = LinearGradient(
+  colors: [
+    Color(0xFFEBEBF4),
+    Color(0xFFF4F4F4),
+    Color(0xFFEBEBF4),
+  ],
+  stops: [
+    0.1,
+    0.3,
+    0.4,
+  ],
+  begin: Alignment(-1.0, -0.3),
+  end: Alignment(1.0, 0.3),
+  tileMode: TileMode.clamp,
+);
