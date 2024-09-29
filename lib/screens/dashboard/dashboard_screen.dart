@@ -188,7 +188,7 @@ class DashboardScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 10),
                                   SizedBox(
-                                    height: 213,
+                                    height: 225,
                                     child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
                                       itemCount: state.hospitals.length,
